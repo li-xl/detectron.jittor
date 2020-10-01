@@ -264,11 +264,12 @@ class Shift(Module):
                 ch_idx += num_ch
 
         self.bias = None
-        self.kernel = nn.Parameter(kernel, requires_grad=False)
+        self.kernel = kernel
+        self.kernel.stop_grad()
 
     def execute(self, x):
         if x.numel() > 0:
-            return nn.functional.conv2d(
+            return nn.conv2d(
                 x,
                 self.kernel,
                 self.bias,
@@ -289,7 +290,7 @@ class Shift(Module):
             )
         ]
         output_shape = [x.shape[0], self.C] + output_shape
-        return _NewEmptyTensorOp.apply(x, output_shape)
+        return _NewEmptyTensorOp()(x, output_shape)
 
 
 class ShiftBlock5x5(nn.Sequential):
@@ -313,7 +314,7 @@ class ShiftBlock5x5(nn.Sequential):
         super(ShiftBlock5x5, self).__init__(*ops)
 
     def execute(self, x):
-        y = super(ShiftBlock5x5, self).forward(x)
+        y = super(ShiftBlock5x5, self).execute(x)
         if self.res_connect:
             y += x
         return y
@@ -334,7 +335,6 @@ class ChannelShuffle(Module):
         return (
             x.view(N, g, int(C / g), H, W)
             .permute(0, 2, 1, 3, 4)
-            .contiguous()
             .view(N, C, H, W)
         )
 
@@ -546,7 +546,7 @@ class IRFBlock(Module):
 
         self.output_depth = output_depth
 
-    def forward(self, x):
+    def execute(self, x):
         y = self.pw(x)
         if self.shuffle_type == "mid":
             y = self.shuffle(y)

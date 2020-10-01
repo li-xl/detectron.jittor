@@ -58,10 +58,10 @@ class GeneralizedRCNN(Module):
         #print('backbone',jt.mean(features[0]))
         #jt.sync_all()
         #print(4,time.asctime())
-        print('Backbone')
+        #print('Backbone')
 
         proposals, proposal_losses = self.rpn(images, features, targets)
-        print('RPN')
+        #print('RPN')
         #print('proposals',jt.mean(proposals[0].bbox))
 
         #jt.sync_all()

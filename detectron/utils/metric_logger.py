@@ -43,7 +43,7 @@ class MetricLogger(object):
 
     def update(self, **kwargs):
         for k, v in kwargs.items():
-            if isinstance(v, jt.array):
+            if isinstance(v, jt.Var):
                 v = v.item()
             assert isinstance(v, (float, int))
             self.meters[k].update(v)

@@ -145,15 +145,11 @@ class ResNet(Module):
 
     def execute(self, x):
         outputs = []
-        print(x.shape)
         x = self.stem(x)
-        print(x.shape)
         for stage_name in self.stages:
             x = getattr(self,stage_name)(x)
-            print(x.shape)
             if self.return_features[stage_name]:
                 outputs.append(x)
-        print('GG')
         return outputs
 
 
@@ -341,10 +337,7 @@ class Bottleneck(Module):
         out = self.bn2(out)
         out = nn.relu(out)
 
-        print('Bottleneck',out.shape)
-
         out = self.conv3(out)
-        print('Bottleneck',out.shape)
         out = self.bn3(out)
 
         if self.downsample is not None:

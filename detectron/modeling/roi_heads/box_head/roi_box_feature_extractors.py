@@ -40,13 +40,8 @@ class ResNet50Conv5ROIFeatureExtractor(Module):
         self.out_channels = head.out_channels
 
     def execute(self, x, proposals):
-        print('ResNet Feature extractor')
-        print(len(proposals))
         x = self.pooler(x, proposals)
-        print('Pooler end')
-        print(x.shape)
         x = self.head(x)
-        print('head end')
         return x
 
 

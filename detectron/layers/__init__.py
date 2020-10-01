@@ -4,7 +4,7 @@ from .misc import Conv2d
 from .misc import DFConv2d
 from .misc import ConvTranspose2d
 from .misc import BatchNorm2d
-from .misc import interpolate
+from .misc import interpolate,InterpolateModule
 from .nms import nms,ml_nms
 from .roi_align import ROIAlign
 from .roi_align import roi_align
@@ -15,14 +15,8 @@ from .sigmoid_focal_loss import SigmoidFocalLoss
 from .iou_loss import IOULoss
 from .scale import Scale
 from .l2_loss import l2_loss
-from .interpolate import InterpolateModule
 from .lovasz_hinge_loss import LovaszHinge
 from .mask_prob import mask_prob_cuda
-from .dcn.deform_conv_func import deform_conv, modulated_deform_conv
-from .dcn.deform_conv_module import DeformConv, ModulatedDeformConv, ModulatedDeformConvPack
-from .dcn.deform_pool_func import deform_roi_pooling
-from .dcn.deform_pool_module import DeformRoIPooling, DeformRoIPoolingPack, ModulatedDeformRoIPoolingPack
-
 
 __all__ = [
     "nms",
@@ -45,14 +39,5 @@ __all__ = [
     'InterpolateModule',
     'LovaszHinge',
     'mask_prob_cuda',
-    'deform_conv',
-    'modulated_deform_conv',
-    'DeformConv',
-    'ModulatedDeformConv',
-    'ModulatedDeformConvPack',
-    'deform_roi_pooling',
-    'DeformRoIPooling',
-    'DeformRoIPoolingPack',
-    'ModulatedDeformRoIPoolingPack',
 ]
 

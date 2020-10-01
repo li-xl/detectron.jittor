@@ -101,6 +101,7 @@ def build_mnv2_fpn_backbone(cfg):
 @registry.BACKBONES.register("HRNET-W40")
 @registry.BACKBONES.register("HRNET-W48")
 def build_hrnet_fpn_backbone(cfg):
+    print(cfg.MODEL.BACKBONE.CONV_BODY)
     if cfg.MODEL.BACKBONE.CONV_BODY == "HRNET-W18":
         width = 18
     elif cfg.MODEL.BACKBONE.CONV_BODY == "HRNET-W32":

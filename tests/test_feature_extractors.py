@@ -49,7 +49,7 @@ def _test_feature_extractors(
         )
 
         N, C_in, H, W = 2, in_channels, 24, 32
-        input = jt.rand([N, C_in, H, W]).float32()
+        input = jt.random([N, C_in, H, W]).float32()
         bboxes = [[1, 1, 10, 10], [5, 5, 8, 8], [2, 2, 3, 4]]
         img_size = [384, 512]
         box_list = BoxList(bboxes, img_size, "xyxy")

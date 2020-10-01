@@ -7,15 +7,15 @@ import jittor as jt
 from jittor import transform as T
 from jittor import nn
 
-from maskrcnn_benchmark.modeling.detector import build_detection_model
-from maskrcnn_benchmark.utils.checkpoint import DetectronCheckpointer
-from maskrcnn_benchmark.structures.image_list import to_image_list
-from maskrcnn_benchmark.modeling.roi_heads.mask_head.inference import Masker
-from maskrcnn_benchmark import layers as L
-from maskrcnn_benchmark.utils import cv2_util
-from maskrcnn_benchmark.utils.colormap import colormap, COLORS
-from maskrcnn_benchmark.utils.colormap import random_colors
-from maskrcnn_benchmark.data.transforms import build_transforms
+from detectron.modeling.detector import build_detection_model
+from detectron.utils.checkpoint import DetectronCheckpointer
+from detectron.structures.image_list import to_image_list
+from detectron.modeling.roi_heads.mask_head.inference import Masker
+from detectron import layers as L
+from detectron.utils import cv2_util
+from detectron.utils.colormap import colormap, COLORS
+from detectron.utils.colormap import random_colors
+from detectron.data.transforms import build_transforms
 
 class Resize(object):
     def __init__(self, min_size, max_size):
@@ -481,7 +481,7 @@ class COCODemo(object):
 
 import numpy as np
 import matplotlib.pyplot as plt
-from maskrcnn_benchmark.structures.keypoint import PersonKeypoints
+from detectron.structures.keypoint import PersonKeypoints
 
 def vis_keypoints(img, kps, kp_thresh=2, alpha=0.7):
     """Visualizes keypoints (adapted from vis_one_image).

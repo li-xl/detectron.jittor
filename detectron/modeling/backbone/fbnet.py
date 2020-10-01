@@ -86,7 +86,7 @@ class FBNetTrunk(Module):
         self.stages = builder.add_blocks(trunk_cfg["stages"])
 
     # return features for each stage
-    def forward(self, x):
+    def execute(self, x):
         y = self.first(x)
         y = self.stages(y)
         ret = [y]
@@ -135,12 +135,12 @@ class FBNetRPNHead(Module):
         self.head = builder.add_blocks(stages)
         self.out_channels = builder.last_depth
 
-    def forward(self, x):
+    def execute(self, x):
         x = [self.head(y) for y in x]
         return x
 
 
-@registry.RPN_HEADS.register("FBNet.rpn_head")
+@registry.RPN_HEADS.register("")
 def add_rpn_head(cfg, in_channels, num_anchors):
     builder, model_arch = create_builder(cfg)
     builder.last_depth = in_channels
@@ -201,7 +201,7 @@ class FBNetROIHead(Module):
 
         self.out_channels = builder.last_depth
 
-    def forward(self, x, proposals):
+    def execute(self, x, proposals):
         x = self.pooler(x, proposals)
         x = self.head(x)
         return x

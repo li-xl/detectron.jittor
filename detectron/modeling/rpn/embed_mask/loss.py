@@ -226,7 +226,7 @@ class EmbedMaskLossComputation(object):
         pos_indexes_for_targets = []
         for im in range(len(targets)):
             pos_indexes_for_targets_per_im = locations.new_ones(len(targets[im])).long() * -1
-            box_regression_im = [box_regression[l][im].detach().view(4, -1).transpose(0, 1).contiguous() * self.fpn_strides[l] for l in
+            box_regression_im = [box_regression[l][im].detach().view(4, -1).transpose(0, 1) * self.fpn_strides[l] for l in
                                  range(len(box_regression))]
             box_regression_im = jt.contrib.concat(box_regression_im, dim=0)
             for t_id in range(len(targets[im])):
@@ -259,7 +259,7 @@ class EmbedMaskLossComputation(object):
         N, dim = features[0].shape[:2]
         features_flatten = jt.contrib.concat(
             [features_per_level.view(N, dim, -1) for features_per_level in features], dim=2
-        ).transpose(1, 2).contiguous()
+        ).transpose(1, 2)
         pos_features = []
         pos_valids = []
         for im in range(N):

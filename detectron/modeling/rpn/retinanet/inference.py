@@ -80,16 +80,13 @@ class RetinaNetPostProcessor(RPNPostProcessor):
         candidate_inds = box_cls > self.pre_nms_thresh
 
         pre_nms_top_n = candidate_inds.reshape(N, -1).sum(1)
-        pre_nms_top_n = pre_nms_top_n.clamp(max=self.pre_nms_top_n)
+        pre_nms_top_n = pre_nms_top_n.clamp(max_v=self.pre_nms_top_n)
 
         results = []
-        for per_box_cls, per_box_regression, per_pre_nms_top_n, \
-        per_candidate_inds, per_anchors in zip(
-            box_cls,
-            box_regression,
-            pre_nms_top_n,
-            candidate_inds,
-            anchors):
+        for i in range(box_cls.shape[0]):
+            per_box_cls, per_box_regression, per_pre_nms_top_n,per_candidate_inds, per_anchors = \
+                box_cls[i],box_regression[i],pre_nms_top_n[i],candidate_inds[i],anchors[i]
+
 
             # Sort and select TopN
             # TODO most of this can be made out of the loop for
@@ -150,7 +147,7 @@ class RetinaNetPostProcessor(RPNPostProcessor):
                 )
                 num_labels = len(boxlist_for_class)
                 boxlist_for_class.add_field(
-                    "labels", jt.full((num_labels,), j).int64()
+                    "labels", jt.full((num_labels,), j).int32()
                 )
                 result.append(boxlist_for_class)
 
@@ -160,7 +157,7 @@ class RetinaNetPostProcessor(RPNPostProcessor):
             # Limit to max_per_image detections **over all classes**
             if number_of_detections > self.fpn_post_nms_top_n > 0:
                 cls_scores = result.get_field("scores")
-                image_thresh, _ = torch.kthvalue(
+                image_thresh, _ = jt.kthvalue(
                     cls_scores,
                     number_of_detections - self.fpn_post_nms_top_n + 1
                 )

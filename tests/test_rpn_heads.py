@@ -21,7 +21,7 @@ class TestRPNHeads(unittest.TestCase):
         ''' Make sure rpn heads run '''
 
         self.assertGreater(len(registry.RPN_HEADS), 0)
-
+        
         in_channels = 64
         num_anchors = 10
 
@@ -36,7 +36,7 @@ class TestRPNHeads(unittest.TestCase):
             rpn = builder(cfg, in_channels, num_anchors)
 
             N, C_in, H, W = 2, in_channels, 24, 32
-            input = jt.rand([N, C_in, H, W]).float32()
+            input = jt.random([N, C_in, H, W]).float32()
             LAYERS = 3
             out = rpn([input] * LAYERS)
             self.assertEqual(len(out), 2)

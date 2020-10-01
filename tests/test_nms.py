@@ -54,7 +54,7 @@ class TestNMS(unittest.TestCase):
 
         for thresh, gt_index in zip(test_thresh, gt_indices):
             keep_indices = box_nms(boxes, scores, thresh)
-            keep_indices = np.sort(keep_indices)
+            keep_indices = np.sort(keep_indices.numpy())
             np.testing.assert_array_equal(keep_indices, np.array(gt_index))
 
     def test_nms1_cpu(self):
@@ -212,7 +212,7 @@ class TestNMS(unittest.TestCase):
             ]
         )
         keep_indices = box_nms(boxes, scores, 0.5)
-        keep_indices = np.sort(keep_indices)
+        keep_indices = np.sort(keep_indices.numpy())
 
         np.testing.assert_array_equal(keep_indices, gt_indices)
 

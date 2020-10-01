@@ -44,7 +44,7 @@ def _test_predictors(
         fe = builder(cfg, in_channels)
 
         N, C_in, H, W = 2, in_channels, hwsize, hwsize
-        input = jt.rand([N, C_in, H, W]).float32()
+        input = jt.random([N, C_in, H, W]).float32()
         out = fe(input)
         yield input, out, cfg
 

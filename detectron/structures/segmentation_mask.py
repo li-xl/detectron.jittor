@@ -80,7 +80,7 @@ class BinaryMaskList(object):
                 width, height = size
                 if width != rle_width or height != rle_height:
                     masks = interpolate(
-                        input=masks[None].float(),
+                        input=masks.unsqueeze(0).float(),
                         size=(height, width),
                         mode="bilinear",
                         align_corners=False,
@@ -101,7 +101,7 @@ class BinaryMaskList(object):
 
         if len(masks.shape) == 2:
             # if only a single instance mask is passed
-            masks = masks[None]
+            masks = masks.unsqueeze(0)
 
         assert len(masks.shape) == 3
         assert masks.shape[1] == size[1], "%s != %s" % (masks.shape[1], size[1])
@@ -149,7 +149,7 @@ class BinaryMaskList(object):
 
         # Height comes first here!
         resized_masks = interpolate(
-            input=self.masks[None].float(),
+            input=self.masks.unsqueeze(0).float(),
             size=(height, width),
             mode="bilinear",
             align_corners=False,
@@ -178,6 +178,7 @@ class BinaryMaskList(object):
 
             reshaped_contour = []
             for entity in contour:
+                entity = entity.get()
                 assert len(entity.shape) == 3
                 assert (
                     entity.shape[1] == 1
@@ -318,8 +319,6 @@ class PolygonInstance(object):
         scaled_polygons = []
         for poly in self.polygons:
             p = poly.clone()
-            print(p.shape)
-            print(p[1::2])
             p[0::2] *= ratio_w
             p[1::2] *= ratio_h
             scaled_polygons.append(p)

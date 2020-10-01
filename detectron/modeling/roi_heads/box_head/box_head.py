@@ -38,7 +38,7 @@ class ROIBoxHead(Module):
         """
         #jt.sync_all()
         #print(5.1,1,time.asctime())
-        print('box_head start')
+        #print('box_head start')
         if self.is_training():
             # Faster R-CNN subsamples during training the proposals with a fixed
             # positive / negative ratio
@@ -49,17 +49,17 @@ class ROIBoxHead(Module):
         # extract features that will be fed to the final classifier. The
         # feature_extractor generally corresponds to the pooler + heads
 
-        print('box_head feature_extractor start')
+        #print('box_head feature_extractor start')
         x = self.feature_extractor(features, proposals)
 
-        print('box_head feature_extractor end')
+        #print('box_head feature_extractor end')
         #jt.sync_all()
         #print(5.1,3,time.asctime())
 
         # final classifier that converts the features into predictions
         class_logits, box_regression = self.predictor(x)
 
-        print('box_head predictor end')
+        #print('box_head predictor end')
 
         #jt.sync_all()
         #print(5.1,4,time.asctime())
@@ -74,7 +74,7 @@ class ROIBoxHead(Module):
         loss_classifier, loss_box_reg = self.loss_evaluator(
             [class_logits], [box_regression]
         )
-        print('box_head end')
+        #print('box_head end')
 
         return (
             x,

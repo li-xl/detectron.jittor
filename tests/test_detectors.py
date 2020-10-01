@@ -46,7 +46,6 @@ EXCLUDED_FOLDERS = [
 ]
 
 
-jt.flags.use_cuda=1
 TEST_CUDA = True
 
 
@@ -62,29 +61,27 @@ def get_config_files(file_list, exclude_folders):
         return any(x in path for x in exclude_dirs)
 
     if exclude_folders is not None:
-        files = [x for x in files if not _contains(x, exclude_folders)]
+        files = [x for x in files if not _contains(x, exclude_folders) and 'hrnet' not in x]
 
     return files
 
 
-def create_model(cfg, device):
+def create_model(cfg):
     cfg = copy.deepcopy(cfg)
     cfg.freeze()
     model = build_detection_model(cfg)
-    model = model.to(device)
     return model
 
 
-def create_random_input(cfg, device):
+def create_random_input(cfg):
     ret = []
     for x in cfg.INPUT.MIN_SIZE_TRAIN:
-        ret.append(jt.rand(3, x, int(x * 1.2)))
+        ret.append(jt.random((3, x, int(x * 1.2))))
     ret = to_image_list(ret, cfg.DATALOADER.SIZE_DIVISIBILITY)
-    ret = ret.to(device)
     return ret
 
 
-def _test_build_detectors(self, device):
+def _test_build_detectors(self):
     ''' Make sure models build '''
 
     cfg_files = get_config_files(None, EXCLUDED_FOLDERS)
@@ -94,10 +91,10 @@ def _test_build_detectors(self, device):
         with self.subTest(cfg_file=cfg_file):
             print('Testing {}...'.format(cfg_file))
             cfg = utils.load_config_from_file(cfg_file)
-            create_model(cfg, device)
+            create_model(cfg)
 
 
-def _test_run_selected_detectors(self, cfg_files, device):
+def _test_run_selected_detectors(self, cfg_files):
     ''' Make sure models build and run '''
     self.assertGreater(len(cfg_files), 0)
 
@@ -107,8 +104,8 @@ def _test_run_selected_detectors(self, cfg_files, device):
             cfg = utils.load_config_from_file(cfg_file)
             cfg.MODEL.RPN.POST_NMS_TOP_N_TEST = 10
             cfg.MODEL.RPN.FPN_POST_NMS_TOP_N_TEST = 10
-            model = create_model(cfg, device)
-            inputs = create_random_input(cfg, device)
+            model = create_model(cfg)
+            inputs = create_random_input(cfg)
             model.eval()
             output = model(inputs)
             self.assertEqual(len(output), len(inputs.image_sizes))
@@ -117,27 +114,31 @@ def _test_run_selected_detectors(self, cfg_files, device):
 class TestDetectors(unittest.TestCase):
     def test_build_detectors(self):
         ''' Make sure models build '''
-        _test_build_detectors(self, "cpu")
+        jt.flags.use_cuda=0
+        _test_build_detectors(self)
 
     @unittest.skipIf(not TEST_CUDA, "no CUDA detected")
     def test_build_detectors_cuda(self):
         ''' Make sure models build on gpu'''
-        _test_build_detectors(self, "cuda")
+        jt.flags.use_cuda=1
+        _test_build_detectors(self)
 
     def test_run_selected_detectors(self):
         ''' Make sure models build and run '''
+        jt.flags.use_cuda=0
         # run on selected models
         cfg_files = get_config_files(CONFIG_FILES, None)
         # cfg_files = get_config_files(None, EXCLUDED_FOLDERS)
-        _test_run_selected_detectors(self, cfg_files, "cpu")
+        _test_run_selected_detectors(self, cfg_files)
 
     @unittest.skipIf(not TEST_CUDA, "no CUDA detected")
     def test_run_selected_detectors_cuda(self):
         ''' Make sure models build and run on cuda '''
+        jt.flags.use_cuda=1
         # run on selected models
         cfg_files = get_config_files(CONFIG_FILES, None)
         # cfg_files = get_config_files(None, EXCLUDED_FOLDERS)
-        _test_run_selected_detectors(self, cfg_files, "cuda")
+        _test_run_selected_detectors(self, cfg_files)
 
 
 if __name__ == "__main__":

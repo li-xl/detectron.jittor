@@ -29,9 +29,9 @@ class CombinedROIHeads(Module):
         # TODO rename x to roi_box_features, if it doesn't increase memory consumption
         #jt.sync_all()
         #print(5.1,time.asctime())
-        print('box start')
+        #print('box start')
         x, detections, loss_box = getattr(self,'box')(features, proposals, targets)
-        print('box end')
+        #print('box end')
         
         #jt.sync_all()
         #print(5.2,time.asctime())

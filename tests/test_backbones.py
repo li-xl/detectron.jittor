@@ -42,7 +42,7 @@ class TestBackbones(unittest.TestCase):
             )
 
             N, C_in, H, W = 2, 3, 224, 256
-            input = jt.rand([N, C_in, H, W]).float32()
+            input = jt.random([N, C_in, H, W]).float32()
             out = backbone(input)
             for cur_out in out:
                 self.assertEqual(
