@@ -1,4 +1,4 @@
-# Inseg.jittor
+# Detectron.jittor
 This is a repo converted from maskrcnn-benchmark and added more SOFA models based on jittor
 
 We reimplemented maskrcnn-benchmark and added more SOFA models into it. maskrcnn-benchmark is [here](https://github.com/facebookresearch/maskrcnn-benchmark)
