@@ -1,15 +1,21 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
 import cv2
+import random
+import math
 import jittor as jt
-from jittor import transform as T
-import torch 
 
-from detectron.modeling.detector import build_detection_model
-from detectron.utils.checkpoint import DetectronCheckpointer
-from detectron.structures.image_list import to_image_list
-from detectron.modeling.roi_heads.mask_head.inference import Masker
-from detectron import layers as L
-from detectron.utils import cv2_util
+from jittor import transform as T
+from jittor import nn
+
+from maskrcnn_benchmark.modeling.detector import build_detection_model
+from maskrcnn_benchmark.utils.checkpoint import DetectronCheckpointer
+from maskrcnn_benchmark.structures.image_list import to_image_list
+from maskrcnn_benchmark.modeling.roi_heads.mask_head.inference import Masker
+from maskrcnn_benchmark import layers as L
+from maskrcnn_benchmark.utils import cv2_util
+from maskrcnn_benchmark.utils.colormap import colormap, COLORS
+from maskrcnn_benchmark.utils.colormap import random_colors
+from maskrcnn_benchmark.data.transforms import build_transforms
 
 class Resize(object):
     def __init__(self, min_size, max_size):
@@ -137,7 +143,8 @@ class COCODemo(object):
         show_mask_heatmaps=False,
         masks_per_dim=2,
         min_image_size=224,
-        weight_loading = None
+        display_text = True,
+        display_scores = True,
     ):
         self.cfg = cfg.clone()
         self.model = build_detection_model(cfg)
@@ -147,10 +154,6 @@ class COCODemo(object):
         save_dir = cfg.OUTPUT_DIR
         checkpointer = DetectronCheckpointer(cfg, self.model, save_dir=save_dir)
         _ = checkpointer.load(cfg.MODEL.WEIGHT)
-        
-        if weight_loading:
-            print('Loading weight from {}.'.format(weight_loading))
-            checkpointer._load_model(torch.load(weight_loading))
         
         self.transforms = self.build_transform()
 
@@ -163,6 +166,9 @@ class COCODemo(object):
         self.confidence_threshold = confidence_threshold
         self.show_mask_heatmaps = show_mask_heatmaps
         self.masks_per_dim = masks_per_dim
+
+        self.display_score = display_scores
+        self.display_text = display_text
 
     def build_transform(self):
         """
@@ -209,6 +215,8 @@ class COCODemo(object):
         top_predictions = self.select_top_predictions(predictions)
 
         result = image.copy()
+        if top_predictions is None:
+            return result
         if self.show_mask_heatmaps:
             return self.create_mask_montage(result, top_predictions)
         result = self.overlay_boxes(result, top_predictions)
@@ -216,8 +224,8 @@ class COCODemo(object):
             result = self.overlay_mask(result, top_predictions)
         if self.cfg.MODEL.KEYPOINT_ON:
             result = self.overlay_keypoints(result, top_predictions)
-        result = self.overlay_class_names(result, top_predictions)
-
+        if self.display_text:
+            result = self.overlay_class_names(result, top_predictions, self.display_score)
         return result
 
     def compute_prediction(self, original_image):
@@ -236,6 +244,7 @@ class COCODemo(object):
         # cfg.DATALOADER.SIZE_DIVISIBILITY
         image_list = to_image_list(image, self.cfg.DATALOADER.SIZE_DIVISIBILITY)
         # compute predictions
+
         with jt.no_grad():
             predictions = self.model(image_list)
 
@@ -244,15 +253,36 @@ class COCODemo(object):
 
         # reshape prediction (a BoxList) into the original image size
         height, width = original_image.shape[:-1]
+        input_w, input_h = prediction.size
+
         prediction = prediction.resize((width, height))
 
         if prediction.has_field("mask"):
             # if we have masks, paste the masks in the right position
             # in the image, as defined by the bounding boxes
             masks = prediction.get_field("mask")
-            # always single image is passed at a time
-            masks = self.masker([masks], [prediction])[0]
-            prediction.add_field("mask", masks)
+
+
+            if masks.ndim == 3:
+                # resize masks
+                
+                stride_mask = float(prediction.get_field('stride').item())
+                h = math.ceil(masks.shape[1] * stride_mask * height / input_h)
+                w = math.ceil(masks.shape[2] * stride_mask * width / input_w)
+                mask_th = prediction.get_field('mask_th')
+                masks = masks
+                masks = nn.interpolate(X=masks.unsqueeze(1).float(), output_size=(h, w),
+                                                        mode="bilinear", align_corners=False)>mask_th
+                masks = masks[:, :, :height, :width]
+                
+                #masks = masks.unsqueeze(1)
+                prediction.add_field("mask", masks)
+            else:
+                # always single image is passed at a time
+                masks = self.masker([masks], [prediction])[0]
+
+                prediction.add_field("mask", masks)
+
         return prediction
 
     def select_top_predictions(self, predictions):
@@ -269,20 +299,41 @@ class COCODemo(object):
                 of the detection properties can be found in the fields of
                 the BoxList via `prediction.fields()`
         """
-        scores = predictions.get_field("scores")
-        keep = jt.nonzero(scores > self.confidence_threshold).squeeze(1)
+        if predictions.has_field("mask_scores"):
+            scores = predictions.get_field("mask_scores")
+        else:
+            scores = predictions.get_field("scores")
+
+        if scores.shape[0]==0:
+            return None
+        
+        keep = jt.nonzero(scores>self.confidence_threshold).squeeze(1)
         predictions = predictions[keep]
         scores = predictions.get_field("scores")
-        _, idx = scores.sort(0, descending=True)
+        idx,_ = jt.argsort(scores,0, descending=True)
         return predictions[idx]
 
     def compute_colors_for_labels(self, labels):
         """
         Simple function that adds fixed colors depending on the class
         """
-        colors = labels[:, None] * self.palette
+        colors = labels[:].unsqueeze(-1) * self.palette
         colors = (colors % 255).numpy().astype("uint8")
         return colors
+
+
+    def compute_colors_for_labels_yolact(self, labels, class_color=False):
+        """
+        Simple function that adds fixed colors depending on the class
+        """
+        # colors = labels[:, None] * self.palette
+        # colors = (colors % 255).numpy().astype("uint8")
+        # colors = torch.cat([(class * 5) % len(COLORS) for class in labels])
+        color_indice = [(labels[c] * 5) if class_color else c * 5 % len(COLORS) for c in range(len(labels))]
+        # colors = torch.cat([COLORS[color_idx] for color_idx in color_indice])
+        colors = [COLORS[color_idx] for color_idx in color_indice]
+        return colors
+
 
     def overlay_boxes(self, image, predictions):
         """
@@ -296,10 +347,13 @@ class COCODemo(object):
         labels = predictions.get_field("labels")
         boxes = predictions.bbox
 
-        colors = self.compute_colors_for_labels(labels).tolist()
+        colors = colormap(rgb=True).tolist()
+        #colors = self.compute_colors_for_labels(labels).tolist()
 
-        for box, color in zip(boxes, colors):
-            box = box.int64()
+        for i in range(len(colors)):
+            color = colors[i]
+            box = boxes[i]
+            box = box.int64().numpy()
             top_left, bottom_right = box[:2].tolist(), box[2:].tolist()
             image = cv2.rectangle(
                 image, tuple(top_left), tuple(bottom_right), tuple(color), 1
@@ -320,16 +374,22 @@ class COCODemo(object):
         masks = predictions.get_field("mask").numpy()
         labels = predictions.get_field("labels")
 
-        colors = self.compute_colors_for_labels(labels).tolist()
+        #colors = self.compute_colors_for_labels(labels).tolist()
+
+        colors = colormap(rgb=True).tolist()
+
+        mask_img = np.copy(image)
 
         for mask, color in zip(masks, colors):
             thresh = mask[0, :, :, None].astype(np.uint8)
             contours, hierarchy = cv2_util.findContours(
                 thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE
             )
-            image = cv2.drawContours(image, contours, -1, color, 3)
+            mask_img = cv2.drawContours(mask_img, contours, -1, color, -1)
 
-        composite = image
+         # composite = image
+        alpha = 0.45
+        composite = cv2.addWeighted(image, 1.0 - alpha, mask_img, alpha, 0)
 
         return composite
 
@@ -337,7 +397,7 @@ class COCODemo(object):
         keypoints = predictions.get_field("keypoints")
         kps = keypoints.keypoints
         scores = keypoints.get_field("logits")
-        kps = jt.contrib.concat((kps[:, :, 0:2], scores[:, :, None]), dim=2).numpy()
+        kps = jt.contrib.concat((kps[:, :, 0:2], scores[:, :].unsqueeze(2)), dim=2).numpy()
         for region in kps:
             image = vis_keypoints(image, region.transpose((1, 0)))
         return image
@@ -378,7 +438,7 @@ class COCODemo(object):
                 result[start_y:end_y, start_x:end_x] = masks[y, x]
         return cv2.applyColorMap(result.numpy(), cv2.COLORMAP_JET)
 
-    def overlay_class_names(self, image, predictions):
+    def overlay_class_names(self, image, predictions,display_score=False):
         """
         Adds detected class names and scores in the positions defined by the
         top-left corner of the predicted bounding box
@@ -388,24 +448,40 @@ class COCODemo(object):
             predictions (BoxList): the result of the computation by the model.
                 It should contain the field `scores` and `labels`.
         """
-        scores = predictions.get_field("scores").tolist()
-        labels = predictions.get_field("labels").tolist()
-        labels = [self.CATEGORIES[i] for i in labels]
-        boxes = predictions.bbox
+        scores = predictions.get_field("scores").numpy().tolist()
+        labels = predictions.get_field("labels").numpy().tolist()
 
-        template = "{}: {:.2f}"
-        for box, score, label in zip(boxes, scores, labels):
+        colors = colormap(rgb=True).tolist()
+
+        labels = [self.CATEGORIES[i] for i in labels]
+        boxes = predictions.bbox.int().numpy()
+
+         # font_face = cv2.FONT_HERSHEY_COMPLEX
+        font_face = cv2.FONT_HERSHEY_DUPLEX
+        font_scale = 0.6
+        font_thickness = 1
+
+        for box, score, label, color in zip(boxes, scores, labels, colors):
             x, y = box[:2]
-            s = template.format(label, score)
-            cv2.putText(
-                image, s, (x, y), cv2.FONT_HERSHEY_SIMPLEX, .5, (255, 255, 255), 1
-            )
+            if display_score:
+                template = "{}: {:.2f}"
+                s = template.format(label, score)
+            else:
+                s = label
+            text_w, text_h = cv2.getTextSize(s, font_face, font_scale, font_thickness)[0]
+            text_pt = (x, y - 3)
+            text_color = [255, 255, 255]
+            # cv2.rectangle(image, (x,y), (x + text_w, y - text_h - 2), color,  -1)
+            # cv2.putText(image, s, (x, y), font_face, font_scale, (255, 255, 255), 1)
+            
+            cv2.rectangle(image,  (x,y), (x + text_w, y - text_h - 4), color,-1) # mimicing yolact
+            cv2.putText(image, s, text_pt, font_face, font_scale, text_color,font_thickness,  cv2.LINE_AA)
 
         return image
 
 import numpy as np
 import matplotlib.pyplot as plt
-from detectron.structures.keypoint import PersonKeypoints
+from maskrcnn_benchmark.structures.keypoint import PersonKeypoints
 
 def vis_keypoints(img, kps, kp_thresh=2, alpha=0.7):
     """Visualizes keypoints (adapted from vis_one_image).
@@ -444,7 +520,6 @@ def vis_keypoints(img, kps, kp_thresh=2, alpha=0.7):
         cv2.line(
             kp_mask, tuple(mid_shoulder), tuple(mid_hip),
             color=colors[len(kp_lines) + 1], thickness=2, lineType=cv2.LINE_AA)
-
     # Draw the keypoints.
     for l in range(len(kp_lines)):
         i1 = kp_lines[l][0]
