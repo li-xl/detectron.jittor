@@ -6,7 +6,7 @@ from .inference import make_embed_mask_postprocessor
 from .loss import make_embed_mask_loss_evaluator
 
 from detectron.layers import Scale
-from detectron.layers import DFConv2d
+#from detectron.layers import DFConv2d
 
 class EmbedMaskHead(nn.Module):
     def __init__(self, cfg, in_channels):
@@ -32,7 +32,8 @@ class EmbedMaskHead(nn.Module):
         for i in range(cfg.MODEL.FCOS.NUM_CONVS):
             if self.use_dcn_in_tower and \
                     i == cfg.MODEL.FCOS.NUM_CONVS - 1:
-                conv_func = DFConv2d
+                #conv_func = DFConv2d
+                pass
             else:
                 conv_func = nn.Conv
 

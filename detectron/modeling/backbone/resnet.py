@@ -22,7 +22,6 @@ from jittor import nn,Module,init
 
 from detectron.layers import FrozenBatchNorm2d
 from detectron.layers import Conv2d
-from detectron.layers import DFConv2d
 from detectron.modeling.make_layers import group_norm
 from detectron.utils.registry import Registry
 
@@ -288,6 +287,7 @@ class Bottleneck(Module):
         )
         self.bn1 = norm_func(bottleneck_channels)
         # TODO: specify init for the above
+        '''
         with_dcn = dcn_config.get("stage_with_dcn", False)
         if with_dcn:
             deformable_groups = dcn_config.get("deformable_groups", 1)
@@ -303,8 +303,10 @@ class Bottleneck(Module):
                 deformable_groups=deformable_groups,
                 bias=False
             )
+            
         else:
-            self.conv2 = Conv2d(
+        '''
+        self.conv2 = Conv2d(
                 bottleneck_channels,
                 bottleneck_channels,
                 kernel_size=3,
@@ -314,7 +316,7 @@ class Bottleneck(Module):
                 groups=num_groups,
                 dilation=dilation
             )
-            init.kaiming_uniform_(self.conv2.weight, a=1)
+        init.kaiming_uniform_(self.conv2.weight, a=1)
 
         self.bn2 = norm_func(bottleneck_channels)
 

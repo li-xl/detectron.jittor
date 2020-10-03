@@ -2,7 +2,7 @@ import jittor as jt
 from jittor import nn,init,Module
 from collections import OrderedDict
 from detectron.utils.registry import Registry
-from detectron.layers import FrozenBatchNorm2d, DFConv2d
+from detectron.layers import FrozenBatchNorm2d
 from detectron.modeling.make_layers import group_norm
 
 _GN = False
@@ -68,6 +68,7 @@ def conv3x3(in_channels, out_channels, module_name, postfix, stride=1, groups=1,
         (f'{module_name}_{postfix}/relu', nn.ReLU())
     ]
 
+'''
 def DFConv3x3(in_channels, out_channels, module_name, postfix, stride=1, groups=1, kernel_size=3, 
                 with_modulated_dcn=None, deformable_groups=None):
     """3x3 convolution with padding"""
@@ -81,6 +82,7 @@ def DFConv3x3(in_channels, out_channels, module_name, postfix, stride=1, groups=
         ),
         (f'{module_name}_{postfix}/relu', nn.ReLU())
     ]
+'''
 
 def conv1x1(in_channels, out_channels, module_name, postfix, stride=1, groups=1, kernel_size=1, padding=0):
     """1x1 convolution with padding"""
@@ -141,8 +143,8 @@ class _OSA_module(Module):
             if with_dcn:
                 deformable_groups = dcn_config.get("deformable_groups", 1)
                 with_modulated_dcn = dcn_config.get("with_modulated_dcn", False)
-                self.layers.append(nn.Sequential(OrderedDict(DFConv3x3(in_channel, stage_ch, module_name, i, 
-                    with_modulated_dcn=with_modulated_dcn, deformable_groups=deformable_groups))))
+                #self.layers.append(nn.Sequential(OrderedDict(DFConv3x3(in_channel, stage_ch, module_name, i, 
+                #    with_modulated_dcn=with_modulated_dcn, deformable_groups=deformable_groups))))
             else:
                 self.layers.append(nn.Sequential(OrderedDict(conv3x3(in_channel, stage_ch, module_name, i))))
             in_channel = stage_ch

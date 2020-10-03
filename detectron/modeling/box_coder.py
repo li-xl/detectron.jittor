@@ -58,7 +58,6 @@ class BoxCoder(object):
             rel_codes (Tensor): encoded boxes
             boxes (Tensor): reference boxes.
         """
-
         boxes = boxes.cast(rel_codes.dtype)
 
         TO_REMOVE = 1  # TODO remove

@@ -1,7 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
 from .batch_norm import FrozenBatchNorm2d
 from .misc import Conv2d
-from .misc import DFConv2d
 from .misc import ConvTranspose2d
 from .misc import BatchNorm2d
 from .misc import interpolate,InterpolateModule
@@ -27,7 +26,6 @@ __all__ = [
     "ROIPool",
     "smooth_l1_loss",
     "Conv2d",
-    "DFConv2d",
     "ConvTranspose2d",
     "interpolate",
     "BatchNorm2d",
