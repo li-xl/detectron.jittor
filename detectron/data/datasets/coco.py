@@ -1,6 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
 import jittor as jt
 from PIL import Image
+import numpy as np
 import os
 from jittor.dataset import Dataset
 from detectron.structures.bounding_box import BoxList
@@ -150,7 +151,7 @@ class CocoDetection(VisionDataset):
 
         img = Image.open(os.path.join(self.root, path)).convert('RGB')
         if self.transforms is not None:
-            img, target = self.transforms(img, target)
+           img, target = self.transforms(img, target)
 
         return img, target
 
@@ -190,30 +191,32 @@ class COCODataset(CocoDetection):
         # TODO might be better to add an extra field
         anno = [obj for obj in anno if obj["iscrowd"] == 0]
 
-        boxes = [obj["bbox"] for obj in anno]
-        boxes = jt.array(boxes).reshape(-1, 4)  # guard against no boxes
-        target = BoxList(boxes, img.size, mode="xywh").convert("xyxy")
+        boxes = np.array([obj["bbox"] for obj in anno])
+        boxes = boxes.reshape(-1,4)
+        # boxes = jt.array(boxes).reshape(-1, 4)  # guard against no boxes
+        target =  BoxList(boxes, img.size, mode="xywh",to_jittor=False)#.convert("xyxy")
 
         classes = [obj["category_id"] for obj in anno]
         classes = [self.json_category_id_to_contiguous_id[c] for c in classes]
-        classes = jt.array(classes)
+        # classes = jt.array(classes)
         target.add_field("labels", classes)
-
+        
+        
         if anno and "segmentation" in anno[0]:
             masks = [obj["segmentation"] for obj in anno]
-            masks = SegmentationMask(masks, img.size, mode='poly')
+            masks = SegmentationMask(masks, img.size, mode='poly',to_jittor=False)
             target.add_field("masks", masks)
-
+        
         if anno and "keypoints" in anno[0]:
             keypoints = [obj["keypoints"] for obj in anno]
             keypoints = PersonKeypoints(keypoints, img.size)
             target.add_field("keypoints", keypoints)
+        
+        #target = target.clip_to_image(remove_empty=True)
 
-        target = target.clip_to_image(remove_empty=True)
-
-        if self._transforms is not None:
-            img, target = self._transforms(img, target)
-
+        #if self._transforms is not None:
+        #    img, target = self._transforms(img, target)
+        
         return img, target, idx
 
     def get_img_info(self, index):

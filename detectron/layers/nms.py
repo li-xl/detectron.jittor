@@ -18,7 +18,8 @@ def _ml_nms(dets,thresh):
       x(:,0)->x1,x(:,1)->y1,x(:,2)->x2,x(:,3)->y2,x(:,4)->score
     '''
     threshold = str(thresh)
-    order = jt.argsort(dets[:,4],descending=True)[0]
+    tmp = dets[:,4]
+    order,_ = jt.argsort(tmp,descending=True)
     dets = dets[order]
     s_1 = '(@x(j,2)-@x(j,0)+1)*(@x(j,3)-@x(j,1)+1)'
     s_2 = '(@x(i,2)-@x(i,0)+1)*(@x(i,3)-@x(i,1)+1)'

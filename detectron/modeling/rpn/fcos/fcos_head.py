@@ -75,7 +75,7 @@ class FCOSHead(nn.Module):
         prior_prob = cfg.MODEL.FCOS.PRIOR_PROB
         bias_value = -math.log((1 - prior_prob) / prior_prob)
         nn.init.constant_(self.cls_logits.bias, bias_value)
-
+        self.cfg = cfg
         self.scales = nn.ModuleList(*[Scale(init_value=1.0) for _ in range(5)])
 
     def execute(self, x):
@@ -85,6 +85,15 @@ class FCOSHead(nn.Module):
         for l, feature in enumerate(x):
             cls_tower = self.cls_tower(feature)
             logits.append(self.cls_logits(cls_tower))
+            
+
+            if self.cfg.MODEL.RPN.FCOS_ONLY:
+                centerness.append(self.centerness(cls_tower))
+                bbox_reg.append(jt.exp(self.scales[l](
+                self.bbox_pred(self.bbox_tower(feature))
+                )))
+                continue
+
             box_tower = self.bbox_tower(feature)
             '''
             centerness.append(self.centerness(box_tower))

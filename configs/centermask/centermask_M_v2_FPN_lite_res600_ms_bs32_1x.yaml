@@ -1,6 +1,6 @@
 MODEL:
   META_ARCHITECTURE: "GeneralizedRCNN"
-  WEIGHT: "https://cloudstor.aarnet.edu.au/plus/s/xtixKaxLWmbcyf7/download#mobilenet_v2-ecbe2b5.pth"
+  WEIGHT: "https://cloud.tsinghua.edu.cn/d/69b55d71e7ff46978a65/files/?p=%2Fcentermask%2Fcentermask-lite-M-v2-ms-bs32-1x.pth&dl=1"
   BACKBONE:
     CONV_BODY: "MNV2-FPN-RETINANET"
     FREEZE_CONV_BODY_AT: 0

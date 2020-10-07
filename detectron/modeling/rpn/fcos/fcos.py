@@ -54,20 +54,20 @@ class FCOSModule(nn.Module):
                 testing, it is an empty dict.
         """
         box_cls, box_regression, centerness = self.head(features)
-        '''
-        for b in box_cls:
-            print('fcos box_cls',jt.mean(b))
-        for b in box_regression:
-            print('fcos box_regression',jt.mean(b))
-        for b in centerness:
-            print('fcos centerness',jt.mean(b))
-        '''
+        
+        # for b in box_cls:
+        #     print('fcos box_cls',jt.mean(b))
+        # for b in box_regression:
+        #     print('fcos box_regression',jt.mean(b))
+        # for b in centerness:
+        #     print('fcos centerness',jt.mean(b))
+        
         locations = self.compute_locations(features)
-
-        '''
-        for l in locations:
-            print("fcos locations",jt.mean(l))
-        '''
+        
+        
+        # for l in locations:
+        #     print("fcos locations",l.mean())
+        
         if self.is_training():
             return self._forward_train(
                 locations, box_cls,

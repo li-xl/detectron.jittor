@@ -3,7 +3,8 @@
 # licensed under the  Apache License, Version 2.0, January 2004
 
 from jittor import nn,Module,init
-from detectron.layers import FrozenBatchNorm2d
+#from detectron.layers import FrozenBatchNorm2d
+from jittor.nn import BatchNorm as FrozenBatchNorm2d
 from detectron.layers import Conv2d
 
 

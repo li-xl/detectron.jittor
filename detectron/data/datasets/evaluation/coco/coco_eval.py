@@ -5,6 +5,7 @@ from collections import OrderedDict
 from tqdm import tqdm
 import numpy as np
 import _pickle as pickle
+from jittor import nn
 
 
 from detectron.modeling.roi_heads.mask_head.inference import Masker
@@ -72,7 +73,7 @@ def do_coco_evaluation(
 def prepare_for_coco_detection(predictions, dataset):
     # assert isinstance(dataset, COCODataset)
     coco_results = []
-    for image_id, prediction in enumerate(predictions):
+    for image_id, prediction in predictions.items():
         original_id = dataset.id_to_img_map[image_id]
         if len(prediction) == 0:
             continue
@@ -86,7 +87,6 @@ def prepare_for_coco_detection(predictions, dataset):
         boxes = prediction.bbox.tolist()
         scores = prediction.get_field("scores").tolist()
         labels = prediction.get_field("labels").tolist()
-
         mapped_labels = [dataset.contiguous_category_id_to_json_id[i] for i in labels]
 
         coco_results.extend(
@@ -110,7 +110,8 @@ def prepare_for_coco_segmentation(predictions, dataset):
     masker = Masker(threshold=0.5, padding=1)
     # assert isinstance(dataset, COCODataset)
     coco_results = []
-    for image_id, prediction in tqdm(enumerate(predictions)):
+    for image_id in tqdm(predictions):
+        prediction = predictions[image_id]
         original_id = dataset.id_to_img_map[image_id]
         if len(prediction) == 0:
             continue
@@ -118,13 +119,27 @@ def prepare_for_coco_segmentation(predictions, dataset):
         img_info = dataset.get_img_info(image_id)
         image_width = img_info["width"]
         image_height = img_info["height"]
+        # print(prediction.get_field("mask").shape,image_height,image_width)
         prediction = prediction.resize((image_width, image_height))
         masks = prediction.get_field("mask")
         # t = time.time()
         # Masker is necessary only if masks haven't been already resized.
-        if list(masks.shape[-2:]) != [image_height, image_width]:
-            masks = masker(masks.expand(1, -1, -1, -1, -1), prediction)
-            masks = masks[0]
+        # print(masks.shape)
+
+        if prediction.has_field('mask_th'):
+            # resize masks
+            stride_mask = prediction.get_field('stride')
+            input_w, input_h = prediction.size
+
+            h = (masks.shape[1] * stride_mask.float() * image_height / input_h).ceil().int32().item()
+            w = (masks.shape[2] * stride_mask.float() * image_width / input_w).ceil().int32().item()
+            mask_th = prediction.get_field('mask_th')
+            masks = (nn.interpolate(masks.unsqueeze(1).float(), size=(int(h), int(w)), mode="bilinear", align_corners=False)>mask_th)
+            masks = masks[:, :, :image_height, :image_width]
+        else:
+            if list(masks.shape[-2:]) != [image_height, image_width]:
+                masks = masker([masks], prediction)
+                masks = masks[0]
         # logger.info('Time mask: {}'.format(time.time() - t))
         # prediction = prediction.convert('xywh')
 
@@ -133,7 +148,7 @@ def prepare_for_coco_segmentation(predictions, dataset):
         labels = prediction.get_field("labels").tolist()
 
         # rles = prediction.get_field('mask')
-
+        masks = masks.numpy()
         rles = [
             mask_util.encode(np.array(mask[0, :, :, np.newaxis], order="F"))[0]
             for mask in masks
@@ -222,7 +237,7 @@ def evaluate_box_proposals(
     gt_overlaps = []
     num_pos = 0
 
-    for image_id, prediction in enumerate(predictions):
+    for image_id, prediction in predictions.items():
         original_id = dataset.id_to_img_map[image_id]
 
         img_info = dataset.get_img_info(image_id)

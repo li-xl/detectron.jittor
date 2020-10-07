@@ -77,19 +77,6 @@ def make_data_loader(cfg, is_train=True, start_iter=0, is_for_period=False):
         shuffle = False 
         start_iter = 0
 
-    if images_per_batch > 1:
-        logger = logging.getLogger(__name__)
-        logger.warning(
-            "When using more than one image per GPU you may encounter "
-            "an out-of-memory (OOM) error if your GPU does not have "
-            "sufficient memory. If this happens, you can reduce "
-            "SOLVER.IMS_PER_BATCH (for training) or "
-            "TEST.IMS_PER_BATCH (for inference). For training, you must "
-            "also adjust the learning rate and schedule length according "
-            "to the linear scaling rule. See for example: "
-            "https://github.com/facebookresearch/Detectron/blob/master/configs/getting_started/tutorial_1gpu_e2e_faster_rcnn_R-50-FPN.yaml#L14"
-        )
-
     # group images which have similar aspect ratio. In this case, we only
     # group in two cases: those with width / height > 1, and the other way around,
     # but the code supports more general grouping strategy
@@ -111,7 +98,7 @@ def make_data_loader(cfg, is_train=True, start_iter=0, is_for_period=False):
     for dataset in datasets:
         collator = BBoxAugCollator() if not is_train and cfg.TEST.BBOX_AUG.ENABLED else \
             BatchCollator(cfg.DATALOADER.SIZE_DIVISIBILITY)
-        num_workers = 0#cfg.DATALOADER.NUM_WORKERS
+        num_workers =  cfg.DATALOADER.NUM_WORKERS
         data_loader = dataset
         data_loader.collate_batch=collator
         data_loader.shuffle = shuffle

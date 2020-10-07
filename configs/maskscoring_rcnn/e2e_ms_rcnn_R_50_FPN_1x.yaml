@@ -1,9 +1,10 @@
 MODEL:
   META_ARCHITECTURE: "GeneralizedRCNN"
-  WEIGHT: "catalog://ImageNetPretrained/MSRA/R-50"
+  WEIGHT: "https://cloud.tsinghua.edu.cn/d/69b55d71e7ff46978a65/files/?p=%2Fmaskscoring_rcnn%2Fres50-model_0090000.pth&dl=1"
   PRETRAINED_MODELS: 'pretrained_models'
   BACKBONE:
     CONV_BODY: "R-50-FPN"  
+    OUT_CHANNELS: 256
   RESNETS:
     BACKBONE_OUT_CHANNELS: 256
   RPN:
@@ -31,6 +32,8 @@ MODEL:
     SHARE_BOX_FEATURE_EXTRACTOR: False
   MASK_ON: True
   MASKIOU_ON: True
+TEST:
+  IMS_PER_BATCH: 1
 DATASETS:
   TRAIN: ("coco_2014_train", "coco_2014_valminusminival")  
   TEST: ("coco_2014_minival",)

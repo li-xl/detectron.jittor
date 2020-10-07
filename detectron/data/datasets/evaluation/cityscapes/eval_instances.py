@@ -44,7 +44,6 @@ from tqdm import tqdm
 
 
 import jittor as jt
-import logging
 
 import numpy as np
 from detectron.modeling.roi_heads.mask_head.inference import Masker

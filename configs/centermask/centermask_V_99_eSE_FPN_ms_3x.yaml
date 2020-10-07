@@ -1,6 +1,6 @@
 MODEL:
   META_ARCHITECTURE: "GeneralizedRCNN"
-  WEIGHT: "https://dl.dropbox.com/s/3wflmwz0wx50ywt/vovnet99_ese_state_dict.pth?dl=1"
+  WEIGHT: "https://cloud.tsinghua.edu.cn/d/69b55d71e7ff46978a65/files/?p=%2Fcentermask%2Fcentermask-V2-99-FPN-ms-3x.pth&dl=1"
   BACKBONE:
     CONV_BODY: "V-99-eSE-FPN-RETINANET"
     FREEZE_CONV_BODY_AT: 0

@@ -20,17 +20,9 @@ from detectron.engine.trainer import do_train
 from detectron.modeling.detector import build_detection_model
 from detectron.utils.checkpoint import DetectronCheckpointer
 from detectron.utils.collect_env import collect_env_info
-from detectron.utils.comm import synchronize, get_rank
 from detectron.utils.imports import import_file
 from detectron.utils.logger import setup_logger
 from detectron.utils.miscellaneous import mkdir, save_config
-
-# See if we can use apex.DistributedDataParallel instead of the torch default,
-# and enable mixed-precision via apex.amp
-try:
-    from apex import amp
-except ImportError:
-    raise ImportError('Use APEX for multi-precision via apex.amp')
 
 
 def train(cfg, local_rank, distributed):
@@ -39,27 +31,20 @@ def train(cfg, local_rank, distributed):
     optimizer = make_optimizer(cfg, model)
     scheduler = make_lr_scheduler(cfg, optimizer)
 
-    # Initialize mixed-precision training
-    use_mixed_precision = cfg.DTYPE == "float16"
-    amp_opt_level = 'O1' if use_mixed_precision else 'O0'
-    model, optimizer = amp.initialize(model, optimizer, opt_level=amp_opt_level)
 
     arguments = {}
     arguments["iteration"] = 0
 
     output_dir = cfg.OUTPUT_DIR
 
-    save_to_disk = get_rank() == 0
     checkpointer = DetectronCheckpointer(
-        cfg, model, optimizer, scheduler, output_dir, save_to_disk
-    )
+        cfg, model, optimizer, scheduler, output_dir)
     extra_checkpoint_data = checkpointer.load(cfg.MODEL.WEIGHT)
     arguments.update(extra_checkpoint_data)
 
     data_loader = make_data_loader(
         cfg,
         is_train=True,
-        is_distributed=distributed,
         start_iter=arguments["iteration"],
     )
 
@@ -116,14 +101,13 @@ def run_test(cfg, model, distributed):
             expected_results_sigma_tol=cfg.TEST.EXPECTED_RESULTS_SIGMA_TOL,
             output_folder=output_folder,
         )
-        synchronize()
 
 
 def main():
     parser = argparse.ArgumentParser(description="PyTorch Object Detection Training")
     parser.add_argument(
         "--config-file",
-        default="",
+        default="/home/lxl/jittor/detectron.jittor/configs/maskrcnn_benchmark/e2e_faster_rcnn_R_50_C4_1x.yaml",
         metavar="FILE",
         help="path to config file",
         type=str,
@@ -154,28 +138,18 @@ def main():
     if output_dir:
         mkdir(output_dir)
 
-    logger = setup_logger("detectron", output_dir, get_rank())
+    logger = setup_logger("detectron", output_dir)
     logger.info("Using {} GPUs".format(num_gpus))
-    logger.info(args)
 
     logger.info("Collecting env info (might take some time)")
     logger.info("\n" + collect_env_info())
 
     logger.info("Loaded configuration file {}".format(args.config_file))
-    with open(args.config_file, "r") as cf:
-        config_str = "\n" + cf.read()
-        logger.info(config_str)
-    logger.info("Running with config:\n{}".format(cfg))
 
-    output_config_path = os.path.join(cfg.OUTPUT_DIR, 'config.yml')
-    logger.info("Saving config into: {}".format(output_config_path))
-    # save overloaded model config in the output directory
-    save_config(cfg, output_config_path)
-
-    model = train(cfg, args.local_rank, args.distributed)
+    model = train(cfg, args.local_rank, False)
 
     if not args.skip_test:
-        run_test(cfg, model, args.distributed)
+        run_test(cfg, model, False)
 
 
 if __name__ == "__main__":

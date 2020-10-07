@@ -265,6 +265,15 @@ class EmbedMaskPostProcessor(nn.Module):
                     l, o, b, c, em, mar, image_sizes, i
                 )
             )
+
+        
+        # for box in sampled_boxes:
+        #     for b in box:
+        #         print('bbox',b.bbox.sum())
+        #         for k,d in b.extra_fields.items():
+        #             print(k,d.sum())
+
+        
         if benchmark and timers is not None:
             timers[4].toc()
             timers[5].tic()

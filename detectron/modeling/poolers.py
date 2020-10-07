@@ -109,6 +109,7 @@ class Pooler(Module):
 
     def convert_to_roi_format(self, boxes):
         concat_boxes = cat([b.bbox for b in boxes], dim=0)
+        #print('concat_boxes',concat_boxes)
         dtype =str(concat_boxes.dtype)
         ids = cat(
             [
@@ -151,6 +152,7 @@ class Pooler(Module):
             idx_in_level = jt.nonzero(levels == level).squeeze(1)
            
             rois_per_level = rois[idx_in_level]
+            #print('idx_in_level',idx_in_level)
             #print('rois_per_level',rois_per_level)
             
             result[idx_in_level] = pooler(per_level_feature, rois_per_level).cast(dtype)

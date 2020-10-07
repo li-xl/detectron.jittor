@@ -11,6 +11,12 @@ MODEL:
   RETINANET:
     USE_C5: False # FCOS uses P5 instead of C5
   USE_SYNCBN: False
+  RPN:
+    FCOS_ONLY: True
+  FCOS:
+    IS_SQRT: True
+TEST:
+  DETECTIONS_PER_IMG: 100
 DATASETS:
   TRAIN: ("coco_2014_train", "coco_2014_valminusminival")
   TEST: ("coco_2014_minival",)

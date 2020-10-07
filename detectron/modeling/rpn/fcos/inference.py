@@ -20,7 +20,7 @@ class FCOSPostProcessor(nn.Module):
     This is only used in the testing.
     """
     def __init__(self, pre_nms_thresh, pre_nms_top_n, nms_thresh,
-                 fpn_post_nms_top_n, min_size, num_classes, dense_points,bbox_aug_enabled):
+                 fpn_post_nms_top_n, min_size, num_classes, dense_points,bbox_aug_enabled,is_sqrt):
         """
         Arguments:
             pre_nms_thresh (float)
@@ -40,6 +40,7 @@ class FCOSPostProcessor(nn.Module):
         self.num_classes = num_classes
         self.dense_points = dense_points
         self.bbox_aug_enabled = bbox_aug_enabled
+        self.is_sqrt = is_sqrt
 
     def forward_for_single_feature_map(
             self, locations, box_cls,
@@ -68,33 +69,53 @@ class FCOSPostProcessor(nn.Module):
         # multiply the classification scores with centerness scores
         box_cls = box_cls * centerness[:, :].unsqueeze(2)
         results = []
+        #print('forward_for_single_feature_map start',N)
         for i in range(N):
+            #print(i)
             per_box_cls = box_cls[i]
 
             per_candidate_inds = candidate_inds[i]
+            #print(per_candidate_inds.shape,per_box_cls.shape)
+            # if per_candidate_inds.sum().item()>0:
+            #    per_box_cls = per_box_cls[per_candidate_inds]
+            # else:
+            #    per_box_cls = jt.zeros((0,),dtype=per_box_cls.dtype)
+
+            #print(per_candidate_inds.shape,jt.sum(per_candidate_inds))
             per_box_cls = per_box_cls[per_candidate_inds]
-
-            #print(jt.sum(per_candidate_inds))
-
 
             per_candidate_nonzeros = per_candidate_inds.nonzero()
             per_box_loc = per_candidate_nonzeros[:, 0]
             per_class = per_candidate_nonzeros[:, 1] 
-            if per_candidate_nonzeros.numel()>0:
-                per_class = per_candidate_nonzeros[:, 1] + 1
+            # if per_candidate_nonzeros.numel()>0:
+            #     per_class = per_candidate_nonzeros[:, 1] + 1
+            per_class = per_candidate_nonzeros[:, 1] + 1
+            #print(per_candidate_nonzeros.shape)
 
-            #print(per_candidate_nonzeros)
-
-
+            
             per_box_regression = box_regression[i]
+            #print('GG',per_box_loc.numel(),per_box_loc.shape)
+            # if per_box_loc.numel()>0:
+            #     per_box_regression = per_box_regression[per_box_loc]
+            #     per_locations = locations[per_box_loc]
+            # else:
+            #     shape = list(per_box_regression.shape)
+            #     shape[0]=0
+            #     per_box_regression = jt.zeros(shape,dtype=per_box_regression.dtype)
+            #     shape = list(locations.shape)
+            #     shape[0]=0
+            #     per_locations = jt.zeros(shape,dtype=locations.dtype)
+
             per_box_regression = per_box_regression[per_box_loc]
             per_locations = locations[per_box_loc]
+            #print('??')
+            #print('per_box_cls1',per_box_cls.mean())
 
             per_pre_nms_top_n = pre_nms_top_n[i]
 
             #print('per_locations',jt.mean(per_locations))
             #print('per_box_regressions',jt.mean(per_box_regression))
-
+            #print(per_pre_nms_top_n.item(),per_candidate_inds.sum().item())
             if per_candidate_inds.sum().item() > per_pre_nms_top_n.item():
                 per_box_cls, top_k_indices = \
                     per_box_cls.topk(per_pre_nms_top_n.item(), sorted=False)
@@ -102,25 +123,39 @@ class FCOSPostProcessor(nn.Module):
                 per_box_regression = per_box_regression[top_k_indices]
                 per_locations = per_locations[top_k_indices]
             
-            #print(jt.mean(per_locations))
-            #print(jt.mean(per_box_regression))
-
+            #print('per_box_cls',per_box_cls.mean())
+            #print('emmm',jt.mean(per_locations))
+            #print('hhh',jt.mean(per_box_regression))
+            # if per_box_loc.numel()>0:
+            #     detections = jt.stack([
+            #     per_locations[:, 0] - per_box_regression[:, 0],
+            #     per_locations[:, 1] - per_box_regression[:, 1],
+            #     per_locations[:, 0] + per_box_regression[:, 2],
+            #     per_locations[:, 1] + per_box_regression[:, 3],
+            # ], dim=1)
+            # else:
+            #     detections = jt.zeros((0,4),dtype=per_locations.dtype)
             detections = jt.stack([
                 per_locations[:, 0] - per_box_regression[:, 0],
                 per_locations[:, 1] - per_box_regression[:, 1],
                 per_locations[:, 0] + per_box_regression[:, 2],
                 per_locations[:, 1] + per_box_regression[:, 3],
             ], dim=1)
-            #print('detections',jt.mean(detections))
+            #print('detections',jt.mean(detections),detections.shape)
 
             h, w = image_sizes[i]
             boxlist = BoxList(detections, (int(w), int(h)), mode="xyxy")
             boxlist.add_field("labels", per_class)
-            boxlist.add_field("scores", per_box_cls)
+            if self.is_sqrt:
+                boxlist.add_field("scores", per_box_cls.sqrt())
+            else:
+                boxlist.add_field("scores", per_box_cls)
+            #print('??',boxlist.get_field('scores'))
             if boxlist.bbox.numel()>0:
                 boxlist = boxlist.clip_to_image(remove_empty=False)
                 boxlist = remove_small_boxes(boxlist, self.min_size)
             results.append(boxlist)
+            #print('Good')
 
         return results
 
@@ -164,16 +199,18 @@ class FCOSPostProcessor(nn.Module):
                 )
             )
         '''
+        
         for bb in sampled_boxes:
             for b in bb:
                 print("Fcos Post sampled_boxes",jt.mean(b.bbox))
         '''
         boxlists = list(zip(*sampled_boxes))
         boxlists = [cat_boxlist(boxlist) for boxlist in boxlists]
-        '''
-        for b in boxlists:
-            print("fcos Post boxlists",jt.mean(b.bbox))
-        '''
+        
+        # for b in boxlists:
+        #     print("fcos Post boxlists",b.bbox.mean())
+        #     print('fcos Post boxlists',b.get_field('scores').mean())
+        
         if not self.bbox_aug_enabled:
             boxlists = self.select_over_all_levels(boxlists)
 
@@ -221,10 +258,12 @@ def make_fcos_postprocessor(config, is_train):
     nms_thresh = config.MODEL.FCOS.NMS_TH
     dense_points = config.MODEL.FCOS.DENSE_POINTS
     fpn_post_nms_top_n = config.MODEL.FCOS.POST_NMS_TOP_N_TRAIN #500
+
     if not is_train:
         fpn_post_nms_top_n = config.TEST.DETECTIONS_PER_IMG
     
     bbox_aug_enabled = config.TEST.BBOX_AUG.ENABLED
+    is_sqrt = config.MODEL.FCOS.IS_SQRT
 
 
     box_selector = FCOSPostProcessor(
@@ -235,6 +274,7 @@ def make_fcos_postprocessor(config, is_train):
         min_size=0,
         num_classes=config.MODEL.FCOS.NUM_CLASSES,
         dense_points=dense_points,
-        bbox_aug_enabled = bbox_aug_enabled)
+        bbox_aug_enabled = bbox_aug_enabled,
+        is_sqrt=is_sqrt)
 
     return box_selector

@@ -213,7 +213,7 @@ class PolygonInstance(object):
     polygons
     """
 
-    def __init__(self, polygons, size):
+    def __init__(self, polygons, size,is_jittor=True):
         """
             Arguments:
                 a list of lists of numbers.
@@ -223,8 +223,8 @@ class PolygonInstance(object):
         if isinstance(polygons, (list, tuple)):
             valid_polygons = []
             for p in polygons:
-                p = jt.array(p).float32()
-                if p.shape[0] >= 6:  # 3 * 2 coordinates
+                #p = jt.array(p).float32()
+                if (isinstance(p,jt.Var) and p.shape[0]>=6) or len(p) >= 6:  # 3 * 2 coordinates
                     valid_polygons.append(p)
             polygons = valid_polygons
 
@@ -247,6 +247,11 @@ class PolygonInstance(object):
 
         self.polygons = polygons
         self.size = tuple(size)
+        if is_jittor:
+            self.to_jittor()
+    
+    def to_jittor(self):
+        self.polygons = [jt.array(p).float32() for p in self.polygons]
 
     def transpose(self, method):
         if method not in (FLIP_LEFT_RIGHT, FLIP_TOP_BOTTOM):
@@ -351,7 +356,7 @@ class PolygonList(object):
     This class handles PolygonInstances for all objects in the image
     """
 
-    def __init__(self, polygons, size):
+    def __init__(self, polygons, size,to_jittor=True):
         """
         Arguments:
             polygons:
@@ -397,11 +402,15 @@ class PolygonList(object):
 
         self.polygons = []
         for p in polygons:
-            p = PolygonInstance(p, size)
+            p = PolygonInstance(p, size,to_jittor)
             if len(p) > 0:
                 self.polygons.append(p)
 
         self.size = tuple(size)
+
+    def to_jittor(self):
+        for p in self.polygons:
+            p.to_jittor()
 
     def transpose(self, method):
         if method not in (FLIP_LEFT_RIGHT, FLIP_TOP_BOTTOM):
@@ -458,9 +467,12 @@ class PolygonList(object):
             # advanced indexing on a single dimension
             selected_polygons = []
             if isinstance(item, jt.Var) and item.dtype == 'bool':
-                item = item.nonzero()
-                item = item.squeeze(1) if item.numel() > 0 else item
-                item = item.numpy().tolist()
+                if item.numel()>0:
+                    item = item.nonzero()
+                    item = item.squeeze(1) if item.numel() > 0 else item
+                    item = item.numpy().tolist()
+                else:
+                    item = []
             for i in item:
                 selected_polygons.append(self.polygons[i])
         return PolygonList(selected_polygons, size=self.size)
@@ -483,7 +495,7 @@ class SegmentationMask(object):
     It wraps BinaryMaskList and PolygonList conveniently.
     """
 
-    def __init__(self, instances, size, mode="poly"):
+    def __init__(self, instances, size, mode="poly",to_jittor=True):
         """
         Arguments:
             instances: two types
@@ -495,15 +507,17 @@ class SegmentationMask(object):
 
         assert isinstance(size, (list, tuple))
         assert len(size) == 2
+        '''
         if isinstance(size[0], jt.Var):
             assert isinstance(size[1], jt.Var)
             size = size[0].item(), size[1].item()
+        '''
 
         assert isinstance(size[0], (int, float))
         assert isinstance(size[1], (int, float))
 
         if mode == "poly":
-            self.instances = PolygonList(instances, size)
+            self.instances = PolygonList(instances, size,to_jittor)
         elif mode == "mask":
             self.instances = BinaryMaskList(instances, size)
         else:
@@ -511,6 +525,10 @@ class SegmentationMask(object):
 
         self.mode = mode
         self.size = tuple(size)
+
+    def to_jittor(self):
+        if self.mode == 'poly':
+            self.instances.to_jittor()
 
     def transpose(self, method):
         flipped_instances = self.instances.transpose(method)

@@ -11,9 +11,6 @@ from detectron.data import make_data_loader
 from detectron.utils.metric_logger import MetricLogger
 from detectron.engine.inference import inference
 
-from apex import amp
-
-
 def do_train(
     cfg,
     model,
@@ -63,8 +60,7 @@ def do_train(
 
         # Note: If mixed precision is not used, this ends up doing nothing
         # Otherwise apply loss scaling for mixed-precision recipe
-        with amp.scale_loss(losses, optimizer) as scaled_losses:
-            optimizer.step(scaled_losses)
+        optimizer.step(losses)
         scheduler.step()
 
         batch_time = time.time() - end

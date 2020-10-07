@@ -3,7 +3,7 @@
 Implements the Generalized R-CNN framework
 """
 
-from jittor import nn,Module
+from jittor import nn
 import jittor as jt
 
 from detectron.structures.image_list import to_image_list
@@ -14,7 +14,7 @@ from ..roi_heads.roi_heads import build_roi_heads
 import time
 
 
-class GeneralizedRCNN(Module):
+class GeneralizedRCNN(nn.Module):
     """
     Main class for Generalized R-CNN. Currently supports boxes and masks.
     It consists of three main parts:
@@ -34,7 +34,7 @@ class GeneralizedRCNN(Module):
     def eval(self):
         super(GeneralizedRCNN, self).eval()
         for v in self.__dict__.values():
-            if isinstance(v, Module):
+            if isinstance(v, nn.Module):
                 v.eval()
         
     def execute(self, images, targets=None):
@@ -58,11 +58,10 @@ class GeneralizedRCNN(Module):
         #print('backbone',jt.mean(features[0]))
         #jt.sync_all()
         #print(4,time.asctime())
-        #print('Backbone')
+        #print('Backbone',features[0].mean())
 
         proposals, proposal_losses = self.rpn(images, features, targets)
-        #print('RPN')
-        #print('proposals',jt.mean(proposals[0].bbox))
+        #print('RPN',proposals[0].bbox.mean())
 
         #jt.sync_all()
         #print(5,time.asctime())

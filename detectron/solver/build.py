@@ -7,7 +7,7 @@ from .lr_scheduler import WarmupMultiStepLR
 def make_optimizer(cfg, model):
     params = []
     for key, value in model.named_parameters():
-        if not value.requires_grad:
+        if value.is_stop_grad():
             continue
         lr = cfg.SOLVER.BASE_LR
         weight_decay = cfg.SOLVER.WEIGHT_DECAY

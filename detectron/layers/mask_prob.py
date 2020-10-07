@@ -7,7 +7,6 @@ using namespace std;
 
 CUDA_SRC=r'''
 __global__ void MaskProbForward(
-    @ARGS_DEF,
     const float* embed_pixel,
     const float* embed_center,
     const float* sigma_center,
@@ -18,8 +17,6 @@ __global__ void MaskProbForward(
     const int mask_width,
     const int dim,
     float* probs) {
- @PRECALC
-
 
   int i = blockIdx.x * blockDim.x + threadIdx.x;
   if (i >= area_sum)
@@ -60,8 +57,8 @@ memset(out_p,0,out->size);
 
 
 auto dim = in0_shape1;
-auto area_sum = in5->ptr<in5_type>()[0];
-auto mask_width = in6->ptr<in6_type>()[0];
+auto area_sum = in5->loop_options.data().at("area_sum");
+auto mask_width = in5->loop_options.data().at("mask_width");
 int num_pixel = in0_shape0;
 int b = area_sum/512;
 if(area_sum%512!=0){
@@ -73,7 +70,6 @@ dim3 blocks((long)b);
 dim3 threads(512);
 
 MaskProbForward<<<blocks, threads>>>(
-    @ARGS,
       in0_p,
       in1_p,
       in2_p,
@@ -100,6 +96,8 @@ def mask_prob_cuda(embed_pixel,embed_center,sigma_center,boxes,box_areas,area_su
     if output_shape[0]*output_shape[1]==0:
         return jt.array([],embed_pixel.dtype)
     output_type = embed_pixel.dtype
-    inputs = [embed_pixel,embed_center,sigma_center,boxes,box_areas,jt.array(area_sum),jt.array(mask_width)]
+    option = jt.empty((0,))
+    option.compile_options = {"area_sum": int(area_sum), "mask_width":int(mask_width) }
+    inputs = [embed_pixel,embed_center,sigma_center,boxes,box_areas, option]
     output = jt.code(output_shape,output_type,inputs, cuda_header=CUDA_HEADER,cuda_src=CUDA_SRC)
     return output

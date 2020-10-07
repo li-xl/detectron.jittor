@@ -132,7 +132,7 @@ _C.DATASETS.TEST = ()
 # -----------------------------------------------------------------------------
 _C.DATALOADER = CN()
 # Number of data loading threads
-_C.DATALOADER.NUM_WORKERS = 4
+_C.DATALOADER.NUM_WORKERS = 8
 # If > 0, this enforces that each collated batch should have a size divisible
 # by SIZE_DIVISIBILITY
 _C.DATALOADER.SIZE_DIVISIBILITY = 0
@@ -236,6 +236,7 @@ _C.MODEL.RPN.FPN_POST_NMS_TOP_N_TEST = 2000
 _C.MODEL.RPN.FPN_POST_NMS_PER_BATCH = True
 # Custom rpn head, empty to use default conv or separable conv
 _C.MODEL.RPN.RPN_HEAD = "SingleConvRPNHead"
+_C.MODEL.RPN.FCOS_ONLY=False
 
 
 # ---------------------------------------------------------------------------- #
@@ -453,6 +454,7 @@ _C.MODEL.FCOS.PRIOR_PROB = 0.01
 _C.MODEL.FCOS.INFERENCE_TH = 0.05
 _C.MODEL.FCOS.NMS_TH = 0.6#0.1#0.6
 _C.MODEL.FCOS.PRE_NMS_TOP_N = 1000#1000
+_C.MODEL.FCOS.IS_SQRT = False
 
 # Focal loss parameter: alpha
 _C.MODEL.FCOS.LOSS_ALPHA = 0.25

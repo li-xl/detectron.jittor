@@ -90,10 +90,16 @@ class RPNPostProcessor(Module):
         num_anchors = A * H * W
 
         pre_nms_top_n = min(self.pre_nms_top_n, num_anchors)
+        #print('objectness',objectness)
         objectness, topk_idx = objectness.topk(pre_nms_top_n, dim=1, sorted=True)
 
-        batch_idx = jt.arange(N)[:].unsqueeze(1)
-        box_regression = box_regression[batch_idx, topk_idx]
+        batch_idx = jt.arange(N).unsqueeze(1)
+        #print(batch_idx)
+        #print(topk_idx)
+        #print('box_regression0',box_regression)
+        #batch_idx = jt.index(topk_idx.shape,dim=0)
+        box_regression = box_regression[batch_idx,topk_idx]
+        #print('box_regression1',box_regression)
 
         image_shapes = [box.size for box in anchors]
         concat_anchors = jt.contrib.concat([a.bbox for a in anchors], dim=0)
@@ -137,6 +143,8 @@ class RPNPostProcessor(Module):
         anchors = list(zip(*anchors))
         for a, o, b in zip(anchors, objectness, box_regression):
             sampled_boxes.append(self.forward_for_single_feature_map(a, o, b))
+
+        #print('sampled_boxes',sampled_boxes[0][0].bbox)
 
         boxlists = list(zip(*sampled_boxes))
         boxlists = [cat_boxlist(boxlist) for boxlist in boxlists]

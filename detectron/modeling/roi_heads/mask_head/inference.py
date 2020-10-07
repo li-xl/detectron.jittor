@@ -48,7 +48,6 @@ class MaskPostProcessor(Module):
         mask_prob = mask_prob.split(boxes_per_image, dim=0)
         #for i in range(len(mask_prob)):
         #    print('mask_prob',i,jt.mean(mask_prob[i]),jt.sum(mask_prob[i]),mask_prob[i].shape)
-
         if self.masker:
             mask_prob = self.masker(mask_prob, boxes)
         #for i in range(len(mask_prob)):
@@ -183,10 +182,13 @@ class Masker(object):
     def forward_single_image(self, masks, boxes):
         boxes = boxes.convert("xyxy")
         im_w, im_h = boxes.size
-        res = [
-            paste_mask_in_image(masks[i][0], boxes.bbox[i], im_h, im_w, self.threshold, self.padding)
-            for i in range(boxes.bbox.shape[0])
-        ]
+        res = []
+        for i in range(boxes.bbox.shape[0]):
+            mask = masks[i]
+            if mask.ndim==3:
+                mask = mask[0]
+            res.append(paste_mask_in_image(mask, boxes.bbox[i], im_h, im_w, self.threshold, self.padding))
+   
         if len(res) > 0:
             res = jt.stack(res, dim=0)[:].unsqueeze(1)
         else:

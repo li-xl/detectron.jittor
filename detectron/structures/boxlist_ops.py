@@ -106,15 +106,15 @@ def boxlist_iou(boxlist1, boxlist2):
 
     box1, box2 = boxlist1.bbox, boxlist2.bbox
 
-    lt = jt.maximum(box1[:, None, :2], box2[:, :2])  # [N,M,2]
-    rb = jt.minimum(box1[:, None, 2:], box2[:, 2:])  # [N,M,2]
+    lt = jt.maximum(box1[:, :2].unsqueeze(1), box2[:, :2])  # [N,M,2]
+    rb = jt.minimum(box1[:, 2:].unsqueeze(1), box2[:, 2:])  # [N,M,2]
 
     TO_REMOVE = 1
 
-    wh = (rb - lt + TO_REMOVE).clamp(min=0)  # [N,M,2]
+    wh = (rb - lt + TO_REMOVE).clamp(min_v=0)  # [N,M,2]
     inter = wh[:, :, 0] * wh[:, :, 1]  # [N,M]
 
-    iou = inter / (area1[:, None] + area2 - inter)
+    iou = inter / (area1.unsqueeze(1) + area2 - inter)
     return iou
 
 
@@ -148,13 +148,10 @@ def cat_boxlist(bboxes):
 
     fields = set(bboxes[0].fields())
     assert all(set(bbox.fields()) == fields for bbox in bboxes)
-
     cat_boxes = BoxList(_cat([bbox.bbox for bbox in bboxes], dim=0), size, mode)
-
     for field in fields:
         data = _cat([bbox.get_field(field) for bbox in bboxes], dim=0)
         cat_boxes.add_field(field, data)
-
     return cat_boxes
 
 

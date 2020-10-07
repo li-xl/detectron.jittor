@@ -271,7 +271,7 @@ class COCODemo(object):
                 w = math.ceil(masks.shape[2] * stride_mask * width / input_w)
                 mask_th = prediction.get_field('mask_th')
                 masks = masks
-                masks = nn.interpolate(X=masks.unsqueeze(1).float(), output_size=(h, w),
+                masks = nn.interpolate(X=masks.unsqueeze(1).float(), size=(h, w),
                                                         mode="bilinear", align_corners=False)>mask_th
                 masks = masks[:, :, :height, :width]
                 

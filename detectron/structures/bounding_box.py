@@ -1,5 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
 import jittor as jt 
+import numpy as np
 
 # transpose
 FLIP_LEFT_RIGHT = 0
@@ -16,17 +17,17 @@ class BoxList(object):
     labels.
     """
 
-    def __init__(self, bbox, image_size, mode="xyxy"):
-        bbox = jt.array(bbox).float32()
-        if bbox.ndim != 2:
-            raise ValueError(
-                "bbox should have 2 dimensions, got {}".format(bbox.ndim)
-            )
-        if bbox.shape[-1] != 4:
-            raise ValueError(
-                "last dimension of bbox should have a "
-                "size of 4, got {}".format(bbox.shape[-1])
-            )
+    def __init__(self, bbox, image_size, mode="xyxy",to_jittor=True):
+        #bbox = jt.array(bbox).float32()
+        # if bbox.ndim != 2:
+        #     raise ValueError(
+        #         "bbox should have 2 dimensions, got {}".format(bbox.ndim)
+        #     )
+        # if bbox.size()>0 and bbox.shape[-1] != 4:
+        #     raise ValueError(
+        #         "last dimension of bbox should have a "
+        #         "size of 4, got {}".format(bbox.shape[-1])
+        #     )
         if mode not in ("xyxy", "xywh"):
             raise ValueError("mode should be 'xyxy' or 'xywh'")
 
@@ -34,6 +35,11 @@ class BoxList(object):
         self.size = image_size  # (image_width, image_height)
         self.mode = mode
         self.extra_fields = {}
+        if to_jittor:
+            self.to_jittor()
+    
+    def to_jittor(self):
+        self.bbox = jt.array(self.bbox).float32()
 
     def add_field(self, field, field_data):
         self.extra_fields[field] = field_data
@@ -52,6 +58,8 @@ class BoxList(object):
             self.extra_fields[k] = v
 
     def convert(self, mode):
+        if not isinstance(self.bbox,jt.Var):
+            self.bbox  = jt.array(self.bbox)
         if mode not in ("xyxy", "xywh"):
             raise ValueError("mode should be 'xyxy' or 'xywh'")
         if mode == self.mode:
@@ -208,6 +216,9 @@ class BoxList(object):
         return self.bbox.shape[0]
 
     def clip_to_image(self, remove_empty=True):
+        if not isinstance(self.bbox,jt.Var):
+            self.to_jittor()
+        #print(self.bbox)
         TO_REMOVE = 1
         self.bbox[:, 0] = jt.clamp(self.bbox[:, 0] ,min_v=0, max_v=self.size[0] - TO_REMOVE)
         self.bbox[:, 1]= jt.clamp(self.bbox[:, 1],min_v=0, max_v=self.size[1] - TO_REMOVE)
@@ -215,14 +226,15 @@ class BoxList(object):
         self.bbox[:, 3]= jt.clamp(self.bbox[:, 3],min_v=0, max_v=self.size[1] - TO_REMOVE)
         if remove_empty:
             box = self.bbox
-            keep = (box[:, 3] > box[:, 1]) & (box[:, 2] > box[:, 0])
+            keep = jt.logical_and((box[:, 3] > box[:, 1]),(box[:, 2] > box[:, 0]))
+            #print(keep)
             return self[keep]
         return self
 
     def area(self):
         box = self.bbox
-        #if box.shape[0] == 0:
-        #    return jt.zeros(0,dtype=str(box.dtype))
+        if box.shape[0] == 0:
+            return jt.zeros((0,),dtype=str(box.dtype))
         if self.mode == "xyxy":
             TO_REMOVE = 1
             area = (box[:, 2] - box[:, 0] + TO_REMOVE) * (box[:, 3] - box[:, 1] + TO_REMOVE)

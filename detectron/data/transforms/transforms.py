@@ -442,7 +442,10 @@ class _ColorJitter(Module):
         Returns:
             PIL Image or Tensor: Color jittered image.
         """
-        fn_idx = jt.randperm(4).numpy()
+        fn_idx = np.arange(4)
+        np.random.shuffle(fn_idx)
+
+        #fn_idx = jt.randperm(4).numpy()
         for fn_id in fn_idx:
             if fn_id == 0 and self.brightness is not None:
                 brightness = self.brightness
