@@ -471,7 +471,7 @@ def run_torch_inference(config_file):
 def run_all_models():
     #config_files = sorted(get_config_files())
     start = 7
-    start = 1
+    start = 4
 
 
     config_files = [
