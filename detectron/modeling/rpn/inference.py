@@ -83,9 +83,12 @@ class RPNPostProcessor(Module):
 
         # put in the same format as anchors
         objectness = permute_and_flatten(objectness, N, A, 1, H, W).reshape(N, -1)
+        # print('objectness',objectness.mean())
+
         objectness = objectness.sigmoid()
 
         box_regression = permute_and_flatten(box_regression, N, A, 4, H, W)
+        # print('regression',box_regression.mean())
 
         num_anchors = A * H * W
 
@@ -144,7 +147,7 @@ class RPNPostProcessor(Module):
         for a, o, b in zip(anchors, objectness, box_regression):
             sampled_boxes.append(self.forward_for_single_feature_map(a, o, b))
 
-        #print('sampled_boxes',sampled_boxes[0][0].bbox)
+        # print('sampled_boxes',sampled_boxes[0][0].bbox)
 
         boxlists = list(zip(*sampled_boxes))
         boxlists = [cat_boxlist(boxlist) for boxlist in boxlists]

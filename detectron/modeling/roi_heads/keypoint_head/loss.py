@@ -86,7 +86,7 @@ class KeypointRCNNLossComputation(object):
             matched_idxs = matched_targets.get_field("matched_idxs")
 
             labels_per_image = matched_targets.get_field("labels")
-            labels_per_image = labels_per_image.int64()
+            labels_per_image = labels_per_image.int32()
 
             # this can probably be removed, but is left here for clarity
             # and completeness

@@ -104,8 +104,8 @@ def run_model(config_file):
     _ = checkpointer.load(cfg.MODEL.WEIGHT)
     
     name = config_file.split('/')[-1].split('.')[0]
-    #hook = auto_diff.Hook(name)
-    #hook.hook_module(model)
+    # hook = auto_diff.Hook(name)
+    # hook.hook_module(model)
     model.eval()
 
     class Resize(object):
@@ -194,19 +194,19 @@ def run_torch_model(config_file):
     import torch
     from torchvision import transforms as T
     from torchvision.transforms import functional as F
-    #import jittor as jt
-    #from jittor_utils import auto_diff
+    import jittor as jt
+    from jittor_utils import auto_diff
     cfg.merge_from_file(config_file)
     model = build_detection_model(cfg)
-    confidence_threshold = 0.5
+    confidence_threshold = 0.0
 
 
     checkpointer = DetectronCheckpointer(cfg, model, save_dir = cfg.OUTPUT_DIR)
     _ = checkpointer.load(cfg.MODEL.WEIGHT)
     
     name = config_file.split('/')[-1].split('.')[0]
-    #hook = auto_diff.Hook(name)
-    #hook.hook_module(model)
+    # hook = auto_diff.Hook(name)
+    # hook.hook_module(model)
     model.eval()
 
     class Resize(object):
@@ -461,6 +461,7 @@ def run_torch_inference(config_file):
         inference(
             model,
             data_loader_val,
+            'coco_2014_minival',
             iou_types=iou_types,
             box_only=cfg.MODEL.RPN_ONLY,
             expected_results=cfg.TEST.EXPECTED_RESULTS,
@@ -469,7 +470,9 @@ def run_torch_inference(config_file):
 
 def run_all_models():
     #config_files = sorted(get_config_files())
-    start = 16
+    start = 7
+
+
     config_files = [
         '/home/lxl/jittor/detectron.jittor/configs/maskrcnn_benchmark/e2e_faster_rcnn_R_50_C4_1x.yaml',
         '/home/lxl/jittor/detectron.jittor/configs/maskrcnn_benchmark/e2e_faster_rcnn_R_50_FPN_1x.yaml',
@@ -497,7 +500,7 @@ def run_all_models():
         #run_torch_inference(f)
         run_inference(f)
         
-        remove_tmp()
+        #remove_tmp()
         #run_torch_model(f)
         #run_fcos_model(f)
         #run_model(f)

@@ -6,8 +6,9 @@ from .bounding_box import BoxList
 from detectron.layers import nms as _box_nms
 from detectron.layers import ml_nms as _box_ml_nms
 
+from jittor.utils.nvtx import nvtx_scope
 
-
+# @nvtx_scope("boxlist_nms")
 def boxlist_nms(boxlist, nms_thresh, max_proposals=-1, score_field="scores"):
     """
     Performs non-maximum suppression on a boxlist, with scores specified
@@ -20,7 +21,7 @@ def boxlist_nms(boxlist, nms_thresh, max_proposals=-1, score_field="scores"):
             after non-maximum suppression
         score_field (str)
     """
-    if nms_thresh <= 0:
+    if nms_thresh <= 0 or len(boxlist)==0:
         return boxlist
     mode = boxlist.mode
     boxlist = boxlist.convert("xyxy")

@@ -40,7 +40,7 @@ class LevelMapper(object):
         # Eqn.(1) in FPN paper
         target_lvls = jt.floor(self.lvl0 + jt.log2(s / self.s0 + self.eps))
         target_lvls = jt.clamp(target_lvls, min_v=self.k_min, max_v=self.k_max)
-        return target_lvls.int64() - self.k_min
+        return target_lvls.int32() - self.k_min
 
 
 class LevelMapperwithArea(object):
@@ -70,7 +70,7 @@ class LevelMapperwithArea(object):
 
         target_lvls = jt.ceil(self.k_max - jt.log2(img_area / bbox_area + self.eps))
         target_lvls = jt.clamp(target_lvls, min_v=self.k_min, max_v=self.k_max)
-        return target_lvls.int64() - self.k_min
+        return target_lvls.int32() - self.k_min
 
 
 class Pooler(Module):

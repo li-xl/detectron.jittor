@@ -55,13 +55,13 @@ class GeneralizedRCNN(nn.Module):
         #print(3,time.asctime())
         images = to_image_list(images)
         features = self.backbone(images.tensors)
-        #print('backbone',jt.mean(features[0]))
+        # print('backbone',jt.mean(features[0]))
         #jt.sync_all()
         #print(4,time.asctime())
         #print('Backbone',features[0].mean())
 
         proposals, proposal_losses = self.rpn(images, features, targets)
-        #print('RPN',proposals[0].bbox.mean())
+        # print('RPN',proposals[0].bbox.mean())
 
         #jt.sync_all()
         #print(5,time.asctime())

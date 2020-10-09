@@ -61,6 +61,8 @@ class ROIBoxHead(Module):
 
         #print('box_head predictor end')
 
+        # print(class_logits,box_regression)
+
         #jt.sync_all()
         #print(5.1,4,time.asctime())
 

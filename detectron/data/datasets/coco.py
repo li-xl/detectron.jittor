@@ -3,6 +3,7 @@ import jittor as jt
 from PIL import Image
 import numpy as np
 import os
+import cv2
 from jittor.dataset import Dataset
 from detectron.structures.bounding_box import BoxList
 from detectron.structures.segmentation_mask import SegmentationMask
@@ -149,7 +150,12 @@ class CocoDetection(VisionDataset):
 
         path = coco.loadImgs(img_id)[0]['file_name']
 
-        img = Image.open(os.path.join(self.root, path)).convert('RGB')
+        # img = Image.open(os.path.join(self.root, path)).convert('RGB')
+        img = cv2.imread(os.path.join(self.root, path),cv2.IMREAD_UNCHANGED)
+        img = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+        img = img.convert('RGB')
+        # img = cv2.imread(os.path.join(self.root, path),cv2.IMREAD_UNCHANGED)
+        # img = img[:,:,::-1]
         if self.transforms is not None:
            img, target = self.transforms(img, target)
 
@@ -157,7 +163,7 @@ class CocoDetection(VisionDataset):
 
 class COCODataset(CocoDetection):
     def __init__(
-        self, ann_file, root, remove_images_without_annotations, transforms=None
+        self, ann_file, root, remove_images_without_annotations, transforms=None,with_masks=True,is_train=True
     ):
         super(COCODataset, self).__init__(root, ann_file)
         # sort indices for reproducible results
@@ -183,10 +189,15 @@ class COCODataset(CocoDetection):
         }
         self.id_to_img_map = {k: v for k, v in enumerate(self.ids)}
         self._transforms = transforms
+        self.with_masks = with_masks
+        self.is_train = is_train
 
     def __getitem__(self, idx):
         img, anno = super(COCODataset, self).__getitem__(idx)
-
+        if not self.is_train:
+            if self._transforms is not None:
+                img, target = self._transforms(img, None)
+            return img, target, idx
         # filter crowd annotations
         # TODO might be better to add an extra field
         anno = [obj for obj in anno if obj["iscrowd"] == 0]
@@ -202,21 +213,20 @@ class COCODataset(CocoDetection):
         target.add_field("labels", classes)
         
         
-        if anno and "segmentation" in anno[0]:
+        if self.with_masks and anno and "segmentation" in anno[0]:
             masks = [obj["segmentation"] for obj in anno]
             masks = SegmentationMask(masks, img.size, mode='poly',to_jittor=False)
             target.add_field("masks", masks)
         
-        if anno and "keypoints" in anno[0]:
+        if self.with_masks and anno and "keypoints" in anno[0]:
             keypoints = [obj["keypoints"] for obj in anno]
             keypoints = PersonKeypoints(keypoints, img.size)
             target.add_field("keypoints", keypoints)
         
         #target = target.clip_to_image(remove_empty=True)
 
-        #if self._transforms is not None:
-        #    img, target = self._transforms(img, target)
-        
+        if self._transforms is not None:
+           img, target = self._transforms(img, target)
         return img, target, idx
 
     def get_img_info(self, index):

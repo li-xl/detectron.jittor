@@ -3,10 +3,11 @@ from jittor import nn,Module
 import jittor as jt
 
 from detectron.structures.bounding_box import BoxList
-from detectron.structures.boxlist_ops import boxlist_nms
+from detectron.structures.boxlist_ops import boxlist_nms,boxlist_ml_nms
 from detectron.structures.boxlist_ops import cat_boxlist
 from detectron.modeling.box_coder import BoxCoder
 
+from jittor.utils.nvtx import nvtx_scope
 
 class PostProcessor(Module):
     """
@@ -81,8 +82,12 @@ class PostProcessor(Module):
             boxlist = self.prepare_boxlist(boxes_per_img, prob, image_shape)
             boxlist = boxlist.clip_to_image(remove_empty=False)
 
+            # print("boxlist",boxlist.bbox.mean(),boxlist.bbox.shape)
+
             if not self.bbox_aug_enabled:  # If bbox aug is enabled, we will do it later
                 boxlist = self.filter_results(boxlist, num_classes)
+                # boxlist = self.filter_results_v2(boxlist, num_classes)
+                # boxlist = self.select_over_all_levels(boxlist)
             results.append(boxlist)
         return results
 
@@ -105,6 +110,7 @@ class PostProcessor(Module):
         boxlist.add_field("scores", scores)
         return boxlist
 
+    # @nvtx_scope("filter_results")
     def filter_results(self, boxlist, num_classes):
         """Returns bounding-box detection results by thresholding on scores and
         applying non-maximum suppression (NMS).
@@ -117,26 +123,55 @@ class PostProcessor(Module):
         result = []
         # Apply threshold on detection probabilities and apply NMS
         # Skip j = 0, because it's the background class
+        # inds_all = (scores > self.score_thresh).int()
         inds_all = scores > self.score_thresh
+        # print(self.score_thresh,num_classes)
+        # print(inds_all.shape)
+        # inds_all = inds_all.transpose(1,0)
+
         for j in range(1, num_classes):
-            inds = inds_all[:, j].nonzero().squeeze(1)
+            # with nvtx_scope("aa"):
+            #     inds = inds_all[:,j].nonzero().squeeze(1)
+                
+            # with nvtx_scope("bb"):
+            #     scores_j = scores[inds, j]
+            #     boxes_j = boxes[inds, j * 4 : (j + 1) * 4]
+            # with nvtx_scope("cc"):
+            #     boxlist_for_class = BoxList(boxes_j, boxlist.size, mode="xyxy")
+            # with nvtx_scope("cc2"):
+            #     boxlist_for_class.add_field("scores", scores_j)
+            # with nvtx_scope("cc3"):
+            #     boxlist_for_class = boxlist_nms(
+            #         boxlist_for_class, self.nms
+            #     )
+            # with nvtx_scope("dd"):
+            #     num_labels = len(boxlist_for_class)
+            # with nvtx_scope("dd2"):
+            #     boxlist_for_class.add_field(
+            #         "labels", jt.full((num_labels,), j).int32()
+            #     )
+            #     result.append(boxlist_for_class)
+
+            inds = inds_all[:,j].nonzero().squeeze(1)
             scores_j = scores[inds, j]
             boxes_j = boxes[inds, j * 4 : (j + 1) * 4]
             boxlist_for_class = BoxList(boxes_j, boxlist.size, mode="xyxy")
             boxlist_for_class.add_field("scores", scores_j)
             boxlist_for_class = boxlist_nms(
-                boxlist_for_class, self.nms
-            )
+                    boxlist_for_class, self.nms
+                )
             num_labels = len(boxlist_for_class)
+            # print(j,num_labels)
+
             boxlist_for_class.add_field(
-                "labels", jt.full((num_labels,), j).int64()
-            )
+                    "labels", jt.full((num_labels,), j).int32()
+                )
             result.append(boxlist_for_class)
 
         result = cat_boxlist(result)
         number_of_detections = len(result)
 
-        # Limit to max_per_image detections **over all classes**
+        #Limit to max_per_image detections **over all classes**
         if number_of_detections > self.detections_per_img > 0:
             cls_scores = result.get_field("scores")
             image_thresh, _ = jt.kthvalue(
@@ -145,8 +180,62 @@ class PostProcessor(Module):
             keep = cls_scores >= image_thresh
             keep = jt.nonzero(keep).squeeze(1)
             result = result[keep]
+        # # Absolute limit detection imgs
+        # if number_of_detections > self.detections_per_img > 0:
+        #     cls_scores = result.get_field("scores")
+        #     scores, indices = jt.topk(
+        #         cls_scores, self.detections_per_img
+        #     )
+        #     result = result[indices]
         return result
 
+
+    def filter_results_v2(self, boxlist, num_classes):
+        """Returns bounding-box detection results by thresholding on scores and
+        applying non-maximum suppression (NMS).
+        """
+        # unwrap the boxlist to avoid additional overhead.
+        # if we had multi-class NMS, we could perform this directly on the boxlist
+        boxes = boxlist.bbox.reshape(-1, num_classes,4)
+        scores = boxlist.get_field("scores").reshape(-1, num_classes)
+
+        result = []
+        # Apply threshold on detection probabilities and apply NMS
+        # Skip j = 0, because it's the background class
+        # inds_all = (scores > self.score_thresh).int()
+        scores = scores[:,1:]
+        inds_all = scores > self.score_thresh
+        # print(inds_all.shape)
+        # inds_all = inds_all.transpose(1,0)
+
+        inds_all = inds_all.nonzero()
+        labels = inds_all[:,1]+1
+        ind_scores = scores[inds_all[:,0],inds_all[:,1]]
+        ind_boxes = boxes[inds_all[:,0],inds_all[:,1],:]
+        ind_boxes = ind_boxes.reshape(-1,4)
+        result = BoxList(ind_boxes, boxlist.size, mode="xyxy")
+        result.add_field("scores", ind_scores)
+        result.add_field("labels", labels)
+        result = boxlist_ml_nms(result, self.nms)
+        number_of_detections = len(result)
+
+        # Limit to max_per_image detections **over all classes**
+        # if number_of_detections > self.detections_per_img > 0:
+        #     cls_scores = result.get_field("scores")
+        #     image_thresh, _ = jt.kthvalue(
+        #         cls_scores, number_of_detections - self.detections_per_img + 1
+        #     )
+        #     keep = cls_scores >= image_thresh
+        #     keep = jt.nonzero(keep).squeeze(1)
+        #     result = result[keep]
+        # Absolute limit detection imgs
+        if number_of_detections > self.detections_per_img > 0:
+            cls_scores = result.get_field("scores")
+            scores, indices = jt.topk(
+                cls_scores, self.detections_per_img
+            )
+            result = result[indices]
+        return result
 
 def make_roi_box_post_processor(cfg):
     use_fpn = cfg.MODEL.ROI_HEADS.USE_FPN

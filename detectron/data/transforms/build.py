@@ -32,8 +32,18 @@ def build_transforms(cfg, is_train=True):
         saturation=saturation,
         hue=hue,
     )
+   
 
-    transform = T.Compose(
+    if not is_train:
+        transform = T.Compose(
+        [
+            T.Resize(min_size, max_size),
+            T.ToTensor(),
+            normalize_transform,
+        ]
+        )
+    else:
+        transform = T.Compose(
         [
             color_jitter,
             T.Resize(min_size, max_size),

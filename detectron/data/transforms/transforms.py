@@ -1,19 +1,28 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
 import random
 
-from jittor import nn,Module,init
+from jittor import nn,init
 from PIL import Image, ImageOps, ImageEnhance
 import jittor as jt
 import numpy as np
 import jittor.transform as T
+from collections.abc import Sequence,Iterable
+
 
 class Compose(object):
     def __init__(self, transforms):
         self.transforms = transforms
 
     def __call__(self, image, target):
+
         for t in self.transforms:
-            image, target = t(image, target)
+            result = t(image, target)
+            if isinstance(result,tuple):
+                image,target = result
+            else:
+                image = result
+                target = None
+
         return image, target
 
     def __repr__(self):
@@ -57,7 +66,10 @@ class Resize(object):
 
     def __call__(self, image, target=None):
         size = self.get_size(image.size)
-        image = T.resize(image,size)
+        if isinstance(image,jt.Var):
+            image = T.resize(image,size)
+        else:
+            image = image.resize(size)
         if target is None:
             return image
         target = target.resize(image.size)
@@ -360,7 +372,7 @@ def uniform_(x,l,r):
     return x.numpy().item()
 
 
-class _ColorJitter(Module):
+class _ColorJitter(object):
     """Randomly change the brightness, contrast and saturation of an image.
     Args:
         brightness (float or tuple of float (min, max)): How much to jitter brightness.
@@ -435,7 +447,7 @@ class _ColorJitter(Module):
 
         return transform
 
-    def execute(self, img):
+    def __call__(self, img):
         """
         Args:
             img (PIL Image or Tensor): Input image.
@@ -510,9 +522,12 @@ class Normalize(object):
         self.to_bgr255 = to_bgr255
 
     def __call__(self, image, target=None):
+        if not isinstance(image,(np.ndarray,jt.Var)):
+            image = np.array(image)
         if self.to_bgr255:
             image = image[[2, 1, 0]] * 255
         image = normalize(image, mean=self.mean, std=self.std)
+        
         if target is None:
             return image
         return image, target

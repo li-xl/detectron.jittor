@@ -40,6 +40,8 @@ def to_image_list(tensors, size_divisible=0):
         tensors = [tensors]
 
     if isinstance(tensors, ImageList):
+        if not isinstance(tensors.tensors,jt.Var):
+            tensors.tensors = jt.array(tensors.tensors)
         return tensors
     elif isinstance(tensors, jt.Var):
         # single tensor shape can be inferred
@@ -63,13 +65,17 @@ def to_image_list(tensors, size_divisible=0):
             max_size = tuple(max_size)
 
         batch_shape = (len(tensors),) + max_size
-        batched_imgs = jt.zeros(batch_shape,dtype=str(tensors[0].dtype))
+        if isinstance(tensors[0],jt.Var):
+            batched_imgs = jt.zeros(batch_shape,dtype='float32')
+        else:
+            batched_imgs = np.zeros(batch_shape,dtype=np.float32)
         for i in range(len(tensors)):
             img = tensors[i]
             batched_imgs[i,: img.shape[0], : img.shape[1], : img.shape[2]]= img
 
         image_sizes = [im.shape[-2:] for im in tensors]
-
+        if isinstance(batched_imgs,np.ndarray):
+            return batched_imgs,image_sizes
         return ImageList(batched_imgs, image_sizes)
     else:
         raise TypeError("Unsupported type for to_image_list: {}".format(type(tensors)))

@@ -350,10 +350,10 @@ class COCODemo(object):
         colors = colormap(rgb=True).tolist()
         #colors = self.compute_colors_for_labels(labels).tolist()
 
-        for i in range(len(colors)):
+        for i in range(boxes.shape[0]):
             color = colors[i]
             box = boxes[i]
-            box = box.int64().numpy()
+            box = box.int32().numpy()
             top_left, bottom_right = box[:2].tolist(), box[2:].tolist()
             image = cv2.rectangle(
                 image, tuple(top_left), tuple(bottom_right), tuple(color), 1

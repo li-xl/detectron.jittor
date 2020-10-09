@@ -213,7 +213,7 @@ class PolygonInstance(object):
     polygons
     """
 
-    def __init__(self, polygons, size,is_jittor=True):
+    def __init__(self, polygons, size,to_jittor=True):
         """
             Arguments:
                 a list of lists of numbers.
@@ -224,6 +224,7 @@ class PolygonInstance(object):
             valid_polygons = []
             for p in polygons:
                 #p = jt.array(p).float32()
+                p = np.array(p).astype(np.float32)
                 if (isinstance(p,jt.Var) and p.shape[0]>=6) or len(p) >= 6:  # 3 * 2 coordinates
                     valid_polygons.append(p)
             polygons = valid_polygons
@@ -247,7 +248,8 @@ class PolygonInstance(object):
 
         self.polygons = polygons
         self.size = tuple(size)
-        if is_jittor:
+        self.jittor = to_jittor
+        if to_jittor:
             self.to_jittor()
     
     def to_jittor(self):
@@ -274,7 +276,7 @@ class PolygonInstance(object):
             p[idx::2] = dim - poly[idx::2] - TO_REMOVE
             flipped_polygons.append(p)
 
-        return PolygonInstance(flipped_polygons, size=self.size)
+        return PolygonInstance(flipped_polygons, size=self.size,to_jittor= self.jittor)
 
     def crop(self, box):
         assert isinstance(box, (list, tuple, jt.Var)), str(type(box))
@@ -318,17 +320,20 @@ class PolygonInstance(object):
         if ratios[0] == ratios[1]:
             ratio = ratios[0]
             scaled_polys = [p * ratio for p in self.polygons]
-            return PolygonInstance(scaled_polys, size)
+            return PolygonInstance(scaled_polys, size,to_jittor=self.jittor)
 
         ratio_w, ratio_h = ratios
         scaled_polygons = []
         for poly in self.polygons:
-            p = poly.clone()
+            if hasattr(poly,'clone'):
+                p = poly.clone()
+            else:
+                p = poly.copy()
             p[0::2] *= ratio_w
             p[1::2] *= ratio_h
             scaled_polygons.append(p)
 
-        return PolygonInstance(scaled_polygons, size=size)
+        return PolygonInstance(scaled_polygons, size=size,to_jittor=self.jittor)
 
     def convert_to_binarymask(self):
         width, height = self.size
@@ -407,6 +412,7 @@ class PolygonList(object):
                 self.polygons.append(p)
 
         self.size = tuple(size)
+        self.jittor = to_jittor
 
     def to_jittor(self):
         for p in self.polygons:
@@ -439,7 +445,7 @@ class PolygonList(object):
             resized_polygons.append(polygon.resize(size))
 
         resized_size = size
-        return PolygonList(resized_polygons, resized_size)
+        return PolygonList(resized_polygons, resized_size,to_jittor=self.jittor)
 
     def to(self, *args, **kwargs):
         return self
@@ -525,6 +531,7 @@ class SegmentationMask(object):
 
         self.mode = mode
         self.size = tuple(size)
+        self.jittor = to_jittor
 
     def to_jittor(self):
         if self.mode == 'poly':
@@ -542,7 +549,7 @@ class SegmentationMask(object):
     def resize(self, size, *args, **kwargs):
         resized_instances = self.instances.resize(size)
         resized_size = size
-        return SegmentationMask(resized_instances, resized_size, self.mode)
+        return SegmentationMask(resized_instances, resized_size, self.mode,self.jittor)
 
     def to(self, *args, **kwargs):
         return self

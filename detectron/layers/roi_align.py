@@ -179,9 +179,8 @@ auto pooled_height = output_shape2;
 auto pooled_width = output_shape3;
 
 auto output_size = num_rois * pooled_height * pooled_width * channels;
-memset(output_p,0,output->size);
 const int total_count = in1_shape0 * out0_shape2 * out0_shape3 * in0_shape1;
-const int thread_per_block = 1024;
+const int thread_per_block = 512L;
 const int block_count = (total_count + thread_per_block - 1) / thread_per_block;
 RoIAlignForward<<<block_count, thread_per_block>>>(@ARGS,output_size,input_p,channels,
 height, width,pooled_height,pooled_width,rois_p,output_p);
@@ -285,7 +284,7 @@ auto pooled_width = grad_shape3;
 auto output_size = num_rois * pooled_height * pooled_width * channels;
 memset(grad_input_p,0,grad_input->size);
 const int total_count = rois_shape0 * grad_shape2 * grad_shape3 * input_shape1;
-const int thread_per_block = 1024;
+const int thread_per_block = 512;
 const int block_count = (total_count + thread_per_block - 1) / thread_per_block;
 RoIAlignBackwardFeature<<<block_count, thread_per_block>>>(@ARGS,output_size,grad_p,num_rois,
 channels,

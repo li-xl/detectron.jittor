@@ -35,6 +35,7 @@ class BoxList(object):
         self.size = image_size  # (image_width, image_height)
         self.mode = mode
         self.extra_fields = {}
+        self.jittor=to_jittor
         if to_jittor:
             self.to_jittor()
     
@@ -58,24 +59,33 @@ class BoxList(object):
             self.extra_fields[k] = v
 
     def convert(self, mode):
-        if not isinstance(self.bbox,jt.Var):
-            self.bbox  = jt.array(self.bbox)
         if mode not in ("xyxy", "xywh"):
             raise ValueError("mode should be 'xyxy' or 'xywh'")
         if mode == self.mode:
             return self
         # we only have two modes, so don't need to check
         # self.mode
-        xmin, ymin, xmax, ymax = self._split_into_xyxy()
+        if isinstance(self.bbox,jt.Var):
+            xmin, ymin, xmax, ymax = self._split_into_xyxy()
+        else:
+            xmin, ymin, xmax, ymax = self._split_into_xyxy_numpy()
         if mode == "xyxy":
-            bbox = jt.contrib.concat((xmin, ymin, xmax, ymax), dim=-1)
-            bbox = BoxList(bbox, self.size, mode=mode)
+            if isinstance(self.bbox,jt.Var):
+                bbox = jt.contrib.concat((xmin, ymin, xmax, ymax), dim=-1)
+            else:
+                bbox = np.concatenate((xmin, ymin, xmax, ymax), axis=-1)
+            bbox = BoxList(bbox, self.size, mode=mode,to_jittor=self.jittor)
         else:
             TO_REMOVE = 1
-            bbox = jt.contrib.concat(
+            if isinstance(self.bbox,jt.Var):
+                bbox = jt.contrib.concat(
                 (xmin, ymin, xmax - xmin + TO_REMOVE, ymax - ymin + TO_REMOVE), dim=-1
-            )
-            bbox = BoxList(bbox, self.size, mode=mode)
+               )
+            else:
+                bbox = np.concatenate(
+                (xmin, ymin, xmax - xmin + TO_REMOVE, ymax - ymin + TO_REMOVE), axis=-1
+               )
+            bbox = BoxList(bbox, self.size, mode=mode,to_jittor=self.jittor)
         bbox._copy_extra_fields(self)
         return bbox
 
@@ -95,8 +105,25 @@ class BoxList(object):
             return (
                 xmin,
                 ymin,
-                xmin + jt.clamp(w - TO_REMOVE,min_v=0,max_v = 9999999),
+                    xmin + jt.clamp(w - TO_REMOVE,min_v=0,max_v = 9999999),
                 ymin + jt.clamp(h - TO_REMOVE,min_v=0,max_v = 9999999),
+            )
+        else:
+            raise RuntimeError("Should not be here")
+
+    def _split_into_xyxy_numpy(self):
+        if self.mode == "xyxy":
+            xmin,ymin,xmax,ymax = self.bbox[:,:1],self.bbox[:,1:2],self.bbox[:,2:3],self.bbox[:,3:]
+            return xmin, ymin, xmax, ymax
+        elif self.mode == "xywh":
+            TO_REMOVE = 1
+            xmin,ymin,w,h = self.bbox[:,:1],self.bbox[:,1:2],self.bbox[:,2:3],self.bbox[:,3:]
+            return (
+                xmin,
+                ymin,
+                xmin + np.clip(w - TO_REMOVE,a_min=0,a_max = 9999999),
+                ymin + np.clip(h - TO_REMOVE,a_min=0,a_max = 9999999),
+            
             )
         else:
             raise RuntimeError("Should not be here")
@@ -113,28 +140,37 @@ class BoxList(object):
         if ratios[0] == ratios[1]:
             ratio = ratios[0]
             scaled_box = self.bbox * ratio
-            bbox = BoxList(scaled_box, size, mode=self.mode)
+            bbox = BoxList(scaled_box, size, mode=self.mode,to_jittor=self.jittor)
             # bbox._copy_extra_fields(self)
             for k, v in self.extra_fields.items():
-                if not isinstance(v, jt.Var):
+                if not isinstance(v, jt.Var) and hasattr(v,'resize'):
                     v = v.resize(size, *args, **kwargs)
                 bbox.add_field(k, v)
             return bbox
 
         ratio_width, ratio_height = ratios
-        xmin, ymin, xmax, ymax = self._split_into_xyxy()
+        if isinstance(self.bbox,jt.Var):
+            xmin, ymin, xmax, ymax = self._split_into_xyxy()
+        else:
+            xmin, ymin, xmax, ymax = self._split_into_xyxy_numpy()
         scaled_xmin = xmin * ratio_width
         scaled_xmax = xmax * ratio_width
         scaled_ymin = ymin * ratio_height
         scaled_ymax = ymax * ratio_height
-        scaled_box = jt.contrib.concat(
+        if isinstance(self.bbox,jt.Var):
+            scaled_box = jt.contrib.concat(
             (scaled_xmin, scaled_ymin, scaled_xmax, scaled_ymax), dim=-1
-        )
-        bbox = BoxList(scaled_box, size, mode="xyxy")
+            )
+        else:
+            scaled_box = np.concatenate(
+            (scaled_xmin, scaled_ymin, scaled_xmax, scaled_ymax), axis=-1
+            )
+        bbox = BoxList(scaled_box, size, mode="xyxy",to_jittor=self.jittor)
         # bbox._copy_extra_fields(self)
         for k, v in self.extra_fields.items():
-            if not isinstance(v, jt.Var):
+            if not isinstance(v, jt.Var) and hasattr(v,'resize'):
                 v = v.resize(size, *args, **kwargs)
+            
             bbox.add_field(k, v)
 
         return bbox.convert(self.mode)
@@ -219,6 +255,8 @@ class BoxList(object):
         if not isinstance(self.bbox,jt.Var):
             self.to_jittor()
         #print(self.bbox)
+        if self.bbox.numel()==0:
+            return self
         TO_REMOVE = 1
         self.bbox[:, 0] = jt.clamp(self.bbox[:, 0] ,min_v=0, max_v=self.size[0] - TO_REMOVE)
         self.bbox[:, 1]= jt.clamp(self.bbox[:, 1],min_v=0, max_v=self.size[1] - TO_REMOVE)
