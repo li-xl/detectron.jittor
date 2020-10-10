@@ -9,7 +9,9 @@ from detectron.structures.boxlist_ops import boxlist_nms
 from detectron.structures.boxlist_ops import remove_small_boxes
 
 from ..utils import cat
+import numpy as np
 from .utils import permute_and_flatten
+# II = 0
 
 class RPNPostProcessor(Module):
     """
@@ -79,6 +81,8 @@ class RPNPostProcessor(Module):
             objectness: tensor of size N, A, H, W
             box_regression: tensor of size N, A * 4, H, W
         """
+        # global II
+        # import pickle
         N, A, H, W = objectness.shape
 
         # put in the same format as anchors
@@ -93,12 +97,26 @@ class RPNPostProcessor(Module):
         num_anchors = A * H * W
 
         pre_nms_top_n = min(self.pre_nms_top_n, num_anchors)
+        # print(pre_nms_top_n)
         #print('objectness',objectness)
+        # objectness = jt.array(pickle.load(open(f'/home/lxl/objectness_0_{II}.pkl','rb')))
+        
+        # print(objectness.shape)
         objectness, topk_idx = objectness.topk(pre_nms_top_n, dim=1, sorted=True)
 
+        # print(II,'topk',topk_idx.sum(),topk_idx.shape)
         batch_idx = jt.arange(N).unsqueeze(1)
-        #print(batch_idx)
-        #print(topk_idx)
+
+        # pickle.dump(topk_idx.numpy(),open(f'/home/lxl/topk_idx_{II}_jt.pkl','wb'))
+        # topk_idx_tmp = topk_idx.numpy()
+        # batch_idx = jt.array(pickle.load(open(f'/home/lxl/batch_idx_{II}.pkl','rb')))
+        # topk_idx = jt.array(pickle.load(open(f'/home/lxl/topk_idx_{II}.pkl','rb')))
+        
+        # err = np.abs(topk_idx_tmp-topk_idx.numpy())
+        # print('Error!!!!!!!!!!!!!!!!',err.sum())
+        # print(err.nonzero())
+
+        
         #print('box_regression0',box_regression)
         #batch_idx = jt.index(topk_idx.shape,dim=0)
         box_regression = box_regression[batch_idx,topk_idx]
@@ -107,12 +125,22 @@ class RPNPostProcessor(Module):
         image_shapes = [box.size for box in anchors]
         concat_anchors = jt.contrib.concat([a.bbox for a in anchors], dim=0)
         concat_anchors = concat_anchors.reshape(N, -1, 4)[batch_idx, topk_idx]
+        
+        
+        
+
+        # box_regression = jt.array(pickle.load(open(f'/home/lxl/box_regression_{II}.pkl','rb')))
+        # concat_anchors = jt.array(pickle.load(open(f'/home/lxl/concat_anchors_{II}.pkl','rb')))
 
         proposals = self.box_coder.decode(
             box_regression.reshape(-1, 4), concat_anchors.reshape(-1, 4)
         )
 
         proposals = proposals.reshape(N, -1, 4)
+
+        # proposals = jt.array(pickle.load(open(f'/home/lxl/proposal_{II}.pkl','rb')))
+        # objectness = jt.array(pickle.load(open(f'/home/lxl/objectness_{II}.pkl','rb')))
+        # II+=1
 
         result = []
         for i in range(len(image_shapes)):
@@ -144,13 +172,30 @@ class RPNPostProcessor(Module):
         sampled_boxes = []
         num_levels = len(objectness)
         anchors = list(zip(*anchors))
+        import pickle
+        # for i in range(len(anchors)):
+
+        #     a = anchors[i][0]
+
+        #     pickle.dump(a.bbox.numpy(),open(f'/home/lxl/anchor_{i}_jt.pkl','wb'))
+        #     pickle.dump(objectness[i].numpy(),open(f'/home/lxl/objectness_{i}_jt.pkl','wb'))
+        #     pickle.dump(box_regression[i].numpy(),open(f'/home/lxl/box_regression_{i}_jt.pkl','wb'))
+        
+        # for i in range(len(anchors)):
+        #     anchors[i] = list(anchors[i])
+        #     anchors[i][0].bbox = jt.array(pickle.load(open(f'/home/lxl/anchor_{i}_torch.pkl','rb')))
+        #     objectness[i] = jt.array(pickle.load(open(f'/home/lxl/objectness_{i}_torch.pkl','rb')))
+        #     box_regression[i] = jt.array(pickle.load(open(f'/home/lxl/box_regression_{i}_torch.pkl','rb')))
+            
         for a, o, b in zip(anchors, objectness, box_regression):
             sampled_boxes.append(self.forward_for_single_feature_map(a, o, b))
 
-        # print('sampled_boxes',sampled_boxes[0][0].bbox)
+        #print('sampled_boxes',sampled_boxes[0][0].bbox)
 
         boxlists = list(zip(*sampled_boxes))
         boxlists = [cat_boxlist(boxlist) for boxlist in boxlists]
+        # boxlists[0].bbox = jt.array(pickle.load(open('/home/lxl/box_torch.pkl','rb')))
+        # print('boxlists',boxlists[0].bbox,boxlists[0].bbox.mean())
 
         if num_levels > 1:
             boxlists = self.select_over_all_levels(boxlists)
@@ -183,11 +228,26 @@ class RPNPostProcessor(Module):
         else:
             for i in range(num_images):
                 objectness = boxlists[i].get_field("objectness")
+                import pickle
+                # pickle.dump(objectness.numpy(),open('/home/lxl/tmp_jt.pkl','wb'))
+                # objectness = pickle.load(open('/home/lxl/tmp_torch.pkl','rb'))
+                # objectness = jt.array(objectness)
+                # print(objectness,objectness.mean())
                 post_nms_top_n = min(self.fpn_post_nms_top_n, objectness.shape[0])
                 _, inds_sorted = jt.topk(
                     objectness, post_nms_top_n, dim=0, sorted=True
                 )
+                # pickle.dump(inds_sorted.numpy(),open('/home/lxl/tmp_ind_jt.pkl','wb'))
+                # inds_sorted = pickle.load(open('/home/lxl/tmp_ind_torch.pkl','rb'))
+                # inds_sorted = jt.array(inds_sorted)
+
+                # pickle.dump(boxlists[i].bbox.numpy(),open('/home/lxl/tmp_box_jt.pkl','wb'))
+                # boxlists[i].bbox = pickle.load(open('/home/lxl/tmp_box_torch.pkl','rb'))
+                # boxlists[i].bbox = jt.array(boxlists[i].bbox)
+                # print(inds_sorted,inds_sorted.mean())
                 boxlists[i] = boxlists[i][inds_sorted]
+                # print(boxlists[i].bbox)
+                
         return boxlists
 
 

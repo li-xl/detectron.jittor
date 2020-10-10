@@ -28,11 +28,15 @@ def detach_output(output):
     return output
 
 from jittor.utils.nvtx import nvtx_scope
+
+# jt.cudnn.set_algorithm_cache_size(0)
+
 def compute_on_dataset(model, data_loader, bbox_aug, timer=None):
     model.eval()
     results_dict = {}
     data_loader.is_train=False
     data_loader.num_workers = 4
+    start_time = 0
     # jt.profiler.start(0, 0)
     for i, batch in enumerate(tqdm(data_loader)):
         # data_loader.display_worker_status()
@@ -43,6 +47,10 @@ def compute_on_dataset(model, data_loader, bbox_aug, timer=None):
         #jt.display_memory_info()
         #if i<187:continue
         # if i>50:break
+        # if i==0:continue
+        if i==20:
+            # For fair comparison,remove jittor compiling time 
+            start_time = time.time()
 
         # with nvtx_scope("preprocess"):
         #     images, targets, image_ids = batch
@@ -102,7 +110,9 @@ def compute_on_dataset(model, data_loader, bbox_aug, timer=None):
         #     #        {img_id: result for img_id, result in zip(image_ids, output)}
         #     #    )
         #     #)
-        images, _, image_ids = batch
+        images, image_sizes, image_ids = batch
+        images = ImageList(jt.array(images),image_sizes)
+        # print(images.tensors.mean(),images.tensors.shape,image_sizes)
         # print(image_ids)
             # images = to_image_list(images,data_loader.collate_batch.size_divisible)                
             # images.tensors = images.tensors.float32()
@@ -115,10 +125,14 @@ def compute_on_dataset(model, data_loader, bbox_aug, timer=None):
                 output = model(images)
             if timer:
                 timer.toc()
+        # jt.sync_all(True)
         output = detach_output(output)
         results_dict.update(
                     {img_id: result for img_id, result in zip(image_ids, output)}
                 )
+    
+    end_time = time.time()
+    print('fps',(5000-20*data_loader.batch_size)/(end_time-start_time))
     #jt.sync_all()
 
     # jt.profiler.stop()
@@ -175,8 +189,7 @@ def inference(
         expected_results_sigma_tol=expected_results_sigma_tol,
     )
 
-    # evaluate is changed to fit embedmask and fcos, so evaluation result of maskrcnn and fasterrcnn is wrong
-    return None
+    # return None
     return evaluate(dataset=dataset,
                     predictions=predictions,
                     output_folder=output_folder,

@@ -36,6 +36,7 @@ class ROIMaskIoUHead(nn.Module):
 
         x = self.feature_extractor(features, selected_mask)
         pred_maskiou = self.predictor(x)
+        # print(pred_maskiou)
 
         if not self.is_training():
             result = self.post_processor(proposals, pred_maskiou, labels)

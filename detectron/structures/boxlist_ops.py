@@ -140,7 +140,9 @@ def cat_boxlist(bboxes):
     """
     assert isinstance(bboxes, (list, tuple))
     assert all(isinstance(bbox, BoxList) for bbox in bboxes)
-
+    if len(bboxes)==0:
+        return BoxList(jt.empty((0,4)), (0,0), mode='xyxy')
+    
     size = bboxes[0].size
     assert all(bbox.size == size for bbox in bboxes)
 

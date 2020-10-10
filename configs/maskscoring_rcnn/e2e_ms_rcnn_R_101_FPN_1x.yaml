@@ -32,7 +32,7 @@ MODEL:
   MASK_ON: True
   MASKIOU_ON: True
 TEST:
-  IMS_PER_BATCH: 1
+  IMS_PER_BATCH: 8
 DATASETS:
   TRAIN: ("coco_2014_train", "coco_2014_valminusminival")
   TEST: ("coco_2014_minival",)

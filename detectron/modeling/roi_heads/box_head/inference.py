@@ -128,6 +128,8 @@ class PostProcessor(Module):
         # print(self.score_thresh,num_classes)
         # print(inds_all.shape)
         # inds_all = inds_all.transpose(1,0)
+        inds_nonzeros = [ inds_all[:,j].nonzero() for j in range(1, num_classes) ]
+        jt.sync(inds_nonzeros)
 
         for j in range(1, num_classes):
             # with nvtx_scope("aa"):
@@ -152,7 +154,11 @@ class PostProcessor(Module):
             #     )
             #     result.append(boxlist_for_class)
 
-            inds = inds_all[:,j].nonzero().squeeze(1)
+            # inds = inds_all[:,j].nonzero().squeeze(1)
+            inds = inds_nonzeros[j-1]
+            if inds.shape[0] == 0:
+                continue
+            inds = inds.squeeze(1)
             scores_j = scores[inds, j]
             boxes_j = boxes[inds, j * 4 : (j + 1) * 4]
             boxlist_for_class = BoxList(boxes_j, boxlist.size, mode="xyxy")
@@ -169,6 +175,10 @@ class PostProcessor(Module):
             result.append(boxlist_for_class)
 
         result = cat_boxlist(result)
+        if not result.has_field('labels'):
+            result.add_field('labels',jt.empty((0,)))
+        if not result.has_field('scores'):
+            result.add_field('scores',jt.empty((0,)))
         number_of_detections = len(result)
 
         #Limit to max_per_image detections **over all classes**

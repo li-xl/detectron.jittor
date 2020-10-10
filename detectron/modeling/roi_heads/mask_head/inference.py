@@ -42,7 +42,7 @@ class MaskPostProcessor(Module):
         labels = [bbox.get_field("labels") for bbox in boxes]
         labels = jt.contrib.concat(labels,dim=0)
         index = jt.arange(num_masks)
-        mask_prob = mask_prob[index, labels][:].unsqueeze(1)
+        mask_prob = mask_prob[index, labels].unsqueeze(1)
 
         boxes_per_image = [len(box) for box in boxes]
         mask_prob = mask_prob.split(boxes_per_image, dim=0)

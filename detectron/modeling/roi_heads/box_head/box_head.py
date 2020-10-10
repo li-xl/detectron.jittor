@@ -50,7 +50,9 @@ class ROIBoxHead(Module):
         # feature_extractor generally corresponds to the pooler + heads
 
         #print('box_head feature_extractor start')
+
         x = self.feature_extractor(features, proposals)
+        # print(x)
 
         #print('box_head feature_extractor end')
         #jt.sync_all()
