@@ -1,0 +1,48 @@
+2020-10-22 10:52:56,297 detectron INFO: Using 1 GPUs
+2020-10-22 10:52:56,297 detectron INFO: Collecting env info (might take some time)
+2020-10-22 10:52:56,297 detectron INFO: 
+
+        Pillow (7.1.2)
+2020-10-22 10:52:56,309 detectron.utils.checkpoint INFO: Loading checkpoint from https://download.pytorch.org/models/maskrcnn/e2e_faster_rcnn_R_50_C4_1x.pth
+2020-10-22 10:52:56,310 detectron.utils.checkpoint INFO: url https://download.pytorch.org/models/maskrcnn/e2e_faster_rcnn_R_50_C4_1x.pth cached in /home/lxl/.torch/models/e2e_faster_rcnn_R_50_C4_1x.pth
+2020-10-22 10:53:00,719 detectron.utils.checkpoint INFO: Loading scheduler from https://download.pytorch.org/models/maskrcnn/e2e_faster_rcnn_R_50_C4_1x.pth
+2020-10-22 10:58:01,139 detectron INFO: Using 1 GPUs
+2020-10-22 10:58:01,139 detectron INFO: Collecting env info (might take some time)
+2020-10-22 10:58:01,140 detectron INFO: 
+
+        Pillow (7.1.2)
+2020-10-22 10:58:01,152 detectron.utils.checkpoint INFO: Loading checkpoint from https://download.pytorch.org/models/maskrcnn/e2e_faster_rcnn_R_50_C4_1x.pth
+2020-10-22 10:58:01,152 detectron.utils.checkpoint INFO: url https://download.pytorch.org/models/maskrcnn/e2e_faster_rcnn_R_50_C4_1x.pth cached in /home/lxl/.torch/models/e2e_faster_rcnn_R_50_C4_1x.pth
+2020-10-22 10:58:05,794 detectron.utils.checkpoint INFO: Loading scheduler from https://download.pytorch.org/models/maskrcnn/e2e_faster_rcnn_R_50_C4_1x.pth
+2020-10-22 10:58:22,760 detectron.utils.miscellaneous INFO: Saving labels mapping into ./labels.json
+2020-10-22 10:58:22,761 detectron.trainer INFO: Start training
+2020-10-22 11:00:10,168 detectron INFO: Using 1 GPUs
+2020-10-22 11:00:10,168 detectron INFO: Collecting env info (might take some time)
+2020-10-22 11:00:10,168 detectron INFO: 
+
+        Pillow (7.1.2)
+2020-10-22 11:00:10,181 detectron.utils.checkpoint INFO: Loading checkpoint from https://download.pytorch.org/models/maskrcnn/e2e_faster_rcnn_R_50_C4_1x.pth
+2020-10-22 11:00:10,181 detectron.utils.checkpoint INFO: url https://download.pytorch.org/models/maskrcnn/e2e_faster_rcnn_R_50_C4_1x.pth cached in /home/lxl/.torch/models/e2e_faster_rcnn_R_50_C4_1x.pth
+2020-10-22 11:00:14,667 detectron.utils.checkpoint INFO: Loading scheduler from https://download.pytorch.org/models/maskrcnn/e2e_faster_rcnn_R_50_C4_1x.pth
+2020-10-22 11:00:31,824 detectron.utils.miscellaneous INFO: Saving labels mapping into ./labels.json
+2020-10-22 11:00:31,825 detectron.trainer INFO: Start training
+2020-10-22 11:00:58,317 detectron INFO: Using 1 GPUs
+2020-10-22 11:00:58,317 detectron INFO: Collecting env info (might take some time)
+2020-10-22 11:00:58,317 detectron INFO: 
+
+        Pillow (7.1.2)
+2020-10-22 11:00:58,329 detectron.utils.checkpoint INFO: Loading checkpoint from https://download.pytorch.org/models/maskrcnn/e2e_faster_rcnn_R_50_C4_1x.pth
+2020-10-22 11:00:58,330 detectron.utils.checkpoint INFO: url https://download.pytorch.org/models/maskrcnn/e2e_faster_rcnn_R_50_C4_1x.pth cached in /home/lxl/.torch/models/e2e_faster_rcnn_R_50_C4_1x.pth
+2020-10-22 11:01:02,833 detectron.utils.checkpoint INFO: Loading scheduler from https://download.pytorch.org/models/maskrcnn/e2e_faster_rcnn_R_50_C4_1x.pth
+2020-10-22 11:01:20,079 detectron.utils.miscellaneous INFO: Saving labels mapping into ./labels.json
+2020-10-22 11:01:20,080 detectron.trainer INFO: Start training
+2020-10-22 11:02:13,514 detectron INFO: Using 1 GPUs
+2020-10-22 11:02:13,514 detectron INFO: Collecting env info (might take some time)
+2020-10-22 11:02:13,514 detectron INFO: 
+
+        Pillow (7.1.2)
+2020-10-22 11:02:13,524 detectron.utils.checkpoint INFO: Loading checkpoint from https://download.pytorch.org/models/maskrcnn/e2e_faster_rcnn_R_50_C4_1x.pth
+2020-10-22 11:02:13,524 detectron.utils.checkpoint INFO: url https://download.pytorch.org/models/maskrcnn/e2e_faster_rcnn_R_50_C4_1x.pth cached in /home/lxl/.torch/models/e2e_faster_rcnn_R_50_C4_1x.pth
+2020-10-22 11:02:17,900 detectron.utils.checkpoint INFO: Loading scheduler from https://download.pytorch.org/models/maskrcnn/e2e_faster_rcnn_R_50_C4_1x.pth
+2020-10-22 11:02:34,827 detectron.utils.miscellaneous INFO: Saving labels mapping into ./labels.json
+2020-10-22 11:02:34,828 detectron.trainer INFO: Start training
