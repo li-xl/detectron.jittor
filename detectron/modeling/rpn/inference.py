@@ -172,30 +172,12 @@ class RPNPostProcessor(Module):
         sampled_boxes = []
         num_levels = len(objectness)
         anchors = list(zip(*anchors))
-        # import pickle
-        # for i in range(len(anchors)):
-
-        #     a = anchors[i][0]
-
-        #     pickle.dump(a.bbox.numpy(),open(f'/home/lxl/anchor_{i}_jt.pkl','wb'))
-        #     pickle.dump(objectness[i].numpy(),open(f'/home/lxl/objectness_{i}_jt.pkl','wb'))
-        #     pickle.dump(box_regression[i].numpy(),open(f'/home/lxl/box_regression_{i}_jt.pkl','wb'))
-        
-        # for i in range(len(anchors)):
-        #     anchors[i] = list(anchors[i])
-        #     anchors[i][0].bbox = jt.array(pickle.load(open(f'/home/lxl/anchor_{i}_torch.pkl','rb')))
-        #     objectness[i] = jt.array(pickle.load(open(f'/home/lxl/objectness_{i}_torch.pkl','rb')))
-        #     box_regression[i] = jt.array(pickle.load(open(f'/home/lxl/box_regression_{i}_torch.pkl','rb')))
-            
         for a, o, b in zip(anchors, objectness, box_regression):
             sampled_boxes.append(self.forward_for_single_feature_map(a, o, b))
 
-        #print('sampled_boxes',sampled_boxes[0][0].bbox)
 
         boxlists = list(zip(*sampled_boxes))
         boxlists = [cat_boxlist(boxlist) for boxlist in boxlists]
-        # boxlists[0].bbox = jt.array(pickle.load(open('/home/lxl/box_torch.pkl','rb')))
-        # print('boxlists',boxlists[0].bbox,boxlists[0].bbox.mean())
 
         if num_levels > 1:
             boxlists = self.select_over_all_levels(boxlists)
@@ -228,25 +210,12 @@ class RPNPostProcessor(Module):
         else:
             for i in range(num_images):
                 objectness = boxlists[i].get_field("objectness")
-                # import pickle
-                # pickle.dump(objectness.numpy(),open('/home/lxl/tmp_jt.pkl','wb'))
-                # objectness = pickle.load(open('/home/lxl/tmp_torch.pkl','rb'))
-                # objectness = jt.array(objectness)
-                # print(objectness,objectness.mean())
                 post_nms_top_n = min(self.fpn_post_nms_top_n, objectness.shape[0])
                 _, inds_sorted = jt.topk(
                     objectness, post_nms_top_n, dim=0, sorted=True
                 )
-                # pickle.dump(inds_sorted.numpy(),open('/home/lxl/tmp_ind_jt.pkl','wb'))
-                # inds_sorted = pickle.load(open('/home/lxl/tmp_ind_torch.pkl','rb'))
-                # inds_sorted = jt.array(inds_sorted)
 
-                # pickle.dump(boxlists[i].bbox.numpy(),open('/home/lxl/tmp_box_jt.pkl','wb'))
-                # boxlists[i].bbox = pickle.load(open('/home/lxl/tmp_box_torch.pkl','rb'))
-                # boxlists[i].bbox = jt.array(boxlists[i].bbox)
-                # print(inds_sorted,inds_sorted.mean())
                 boxlists[i] = boxlists[i][inds_sorted]
-                # print(boxlists[i].bbox)
                 
         return boxlists
 

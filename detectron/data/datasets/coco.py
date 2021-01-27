@@ -116,7 +116,6 @@ class VisionDataset(Dataset):
 
 class CocoDetection(VisionDataset):
     """
-    Convert from torchvision.
     `MS Coco Detection <http://mscoco.org/dataset/#detections-challenge2016>`_ Dataset.
     Args:
         root (string): Root directory where images are downloaded to.

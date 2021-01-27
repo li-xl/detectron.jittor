@@ -41,7 +41,6 @@ class Resize(object):
         self.min_size = min_size
         self.max_size = max_size
 
-    # modified from torchvision to add support for max size
     def get_size(self, image_size):
         w, h = image_size
         size = random.choice(self.min_size)
@@ -139,7 +138,7 @@ def adjust_brightness_pil(img, brightness_factor):
     return img
 
 
-def _is_tensor_a_torch_image(x):
+def _is_tensor_a_jittor_image(x):
     return x.ndim >= 2
 
 def _blend(img1, img2, ratio):
@@ -161,8 +160,8 @@ def adjust_brightness_tensor(img, brightness_factor):
     if brightness_factor < 0:
         raise ValueError('brightness_factor ({}) is not non-negative.'.format(brightness_factor))
 
-    if not _is_tensor_a_torch_image(img):
-        raise TypeError('tensor is not a torch image.')
+    if not _is_tensor_a_jittor_image(img):
+        raise TypeError('tensor is not a jittor image.')
 
     return _blend(img, jt.zeros(img.shape), brightness_factor)
 
@@ -226,8 +225,8 @@ def adjust_contrast_tensor(img, contrast_factor):
     if contrast_factor < 0:
         raise ValueError('contrast_factor ({}) is not non-negative.'.format(contrast_factor))
 
-    if not _is_tensor_a_torch_image(img):
-        raise TypeError('tensor is not a torch image.')
+    if not _is_tensor_a_jittor_image(img):
+        raise TypeError('tensor is not a jittor image.')
 
     gray  = rgb_to_grayscale(img)
     gray.dtype = 'float'
@@ -280,8 +279,8 @@ def adjust_saturation_tensor(img, saturation_factor):
     if saturation_factor < 0:
         raise ValueError('saturation_factor ({}) is not non-negative.'.format(saturation_factor))
 
-    if not _is_tensor_a_torch_image(img):
-        raise TypeError('tensor is not a torch image.')
+    if not _is_tensor_a_jittor_image(img):
+        raise TypeError('tensor is not a jittor image.')
 
     return _blend(img, rgb_to_grayscale(img), saturation_factor)
 

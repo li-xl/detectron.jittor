@@ -28,7 +28,7 @@ class ImageList(object):
 
 def to_image_list(tensors, size_divisible=0):
     """
-    tensors can be an ImageList, a torch.Tensor or
+    tensors can be an ImageList, a jt.Var or
     an iterable of Tensors. It can't be a numpy array.
     When tensors is an iterable of Tensors, it pads
     the Tensors with zeros so that they have the same

@@ -72,7 +72,6 @@ class BoxCoder(object):
         dw = rel_codes[:, 2::4] / ww
         dh = rel_codes[:, 3::4] / wh
 
-        # Prevent sending too large values into torch.exp()
         dw = jt.clamp(dw, max_v=self.bbox_xform_clip)
         dh = jt.clamp(dh, max_v=self.bbox_xform_clip)
 

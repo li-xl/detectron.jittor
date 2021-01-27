@@ -274,7 +274,6 @@ class Bottleneck(Module):
             stride = 1 # reset to be 1
 
         # The original MSRA ResNet models have stride in the first 1x1 conv
-        # The subsequent fb.torch.resnet and Caffe2 ResNe[X]t implementations have
         # stride in the 3x3 conv
         stride_1x1, stride_3x3 = (stride, 1) if stride_in_1x1 else (1, stride)
 

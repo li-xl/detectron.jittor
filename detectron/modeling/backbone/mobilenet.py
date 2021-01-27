@@ -1,4 +1,3 @@
-# taken from https://github.com/tonylins/pytorch-mobilenet-v2/
 # Published by Ji Lin, tonylins
 # licensed under the  Apache License, Version 2.0, January 2004
 

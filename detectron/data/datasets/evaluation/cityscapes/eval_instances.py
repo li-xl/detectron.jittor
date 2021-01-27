@@ -300,9 +300,6 @@ def prepareGtImage(dataset, idx):
         if len(maskTensor.shape) == 2:
             maskTensor = maskTensor[None]
 
-        # unique_values = set(torch.unique(maskTensor).tolist())
-        # assert len(unique_values) == 2, "Not binary mask: %s" % unique_values
-        # pixelCounts = maskTensor.clamp_(0, 1).sum(dim=[1, 2])
         pixelCounts = []
         for (xmin, ymin, xmax, ymax), instanceMask in zip(bbs, maskTensor):
             pixelCounts.append(instanceMask[ymin:ymax, xmin:xmax].sum().item())

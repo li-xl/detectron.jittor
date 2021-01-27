@@ -1,7 +1,4 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
-r"""
-Basic training script for PyTorch
-"""
 
 # Set up custom environment before nearly anything else is imported
 # NOTE: this should be the first import (no not reorder)
@@ -103,7 +100,7 @@ def run_test(cfg, model, distributed):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="PyTorch Object Detection Training")
+    parser = argparse.ArgumentParser(description="Object Detection Training")
     parser.add_argument(
         "--config-file",
         default="/home/lxl/jittor/detectron.jittor/configs/maskrcnn_benchmark/e2e_faster_rcnn_R_50_C4_1x.yaml",

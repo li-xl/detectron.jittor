@@ -346,7 +346,7 @@ _C.MODEL.RESNETS.NUM_GROUPS = 1
 _C.MODEL.RESNETS.WIDTH_PER_GROUP = 64
 
 # Place the stride 2 conv on the 1x1 filter
-# Use True only for the original MSRA ResNet; use False for C2 and Torch models
+# Use True only for the original MSRA ResNet; 
 _C.MODEL.RESNETS.STRIDE_IN_1X1 = True
 
 # Residual transformation function

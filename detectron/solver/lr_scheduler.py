@@ -42,7 +42,6 @@ class _LRScheduler(object):
         self.base_lrs = list(map(lambda group: group['initial_lr'], optimizer.param_groups))
         self.last_epoch = last_epoch
 
-        # Following https://github.com/pytorch/pytorch/issues/20124
         # We would like to ensure that `lr_scheduler.step()` is called after
         # `optimizer.step()`
         def with_counter(method):
@@ -115,22 +114,15 @@ class _LRScheduler(object):
 
     def step(self, epoch=None):
         # Raise a warning if old pattern is detected
-        # https://github.com/pytorch/pytorch/issues/20124
         if self._step_count == 1:
             if not hasattr(self.optimizer.step, "_with_counter"):
                 warnings.warn("Seems like `optimizer.step()` has been overridden after learning rate scheduler "
                               "initialization. Please, make sure to call `optimizer.step()` before "
-                              "`lr_scheduler.step()`. See more details at "
-                              "https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate", UserWarning)
+                              "`lr_scheduler.step()`. See more details at ", UserWarning)
 
             # Just check if there were two first lr_scheduler.step() calls before optimizer.step()
             elif self.optimizer._step_count < 1:
-                warnings.warn("Detected call of `lr_scheduler.step()` before `optimizer.step()`. "
-                              "In PyTorch 1.1.0 and later, you should call them in the opposite order: "
-                              "`optimizer.step()` before `lr_scheduler.step()`.  Failure to do this "
-                              "will result in PyTorch skipping the first value of the learning rate schedule. "
-                              "See more details at "
-                              "https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate", UserWarning)
+                warnings.warn("Detected call of `lr_scheduler.step()` before `optimizer.step()`. ", UserWarning)
         self._step_count += 1
 
         class _enable_get_lr_call:

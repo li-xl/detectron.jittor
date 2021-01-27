@@ -128,7 +128,7 @@ def do_train(
                     iter=iteration,
                     meters=str(meters_val),
                     lr=optimizer.param_groups[0]["lr"],
-                    memory= 2014 / 1024.0 / 1024.0,# TODO torch.cuda.max_memory_allocated()
+                    memory= 2014 / 1024.0 / 1024.0,
                 )
             )
         if iteration == max_iter:

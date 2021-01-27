@@ -1,8 +1,8 @@
-import torch
+import jittor as jt
 import logging
 
 def load_deformable_vovnet(cfg, f):
-    state_dict = torch.load(f, map_location=torch.device("cpu"))
+    state_dict = jt.load(f)
     import re
     logger = logging.getLogger(__name__)
     logger.info("Remapping conv weights for deformable conv weights")

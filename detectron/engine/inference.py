@@ -5,7 +5,6 @@ import os
 
 from tqdm import tqdm
 import jittor as jt
-import torch
 
 from detectron.data.datasets.evaluation import evaluate
 from detectron.structures.image_list import to_image_list,ImageList
@@ -188,7 +187,6 @@ def inference(
         output_folder=None,
         cfg = None
 ):
-    # convert to a torch.device for efficiency
     logger = logging.getLogger("detectron.inference")
 
     dataset = data_loader
@@ -215,7 +213,7 @@ def inference(
     )
 
     if output_folder:
-        torch.save(predictions, os.path.join(output_folder, "predictions.pth"))
+        jt.save(predictions, os.path.join(output_folder, "predictions.pkl"))
     # save_predictions(predictions)
 
     extra_args = dict(

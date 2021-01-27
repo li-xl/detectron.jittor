@@ -62,7 +62,7 @@ class RPNLossComputation(object):
 
             matched_idxs = matched_targets.get_field("matched_idxs")
             labels_per_image = self.generate_labels_func(matched_targets)
-            labels_per_image = labels_per_image.to(dtype=torch.float32)
+            labels_per_image = labels_per_image.float32()
 
             # Background (negative examples)
             bg_indices = matched_idxs == Matcher.BELOW_LOW_THRESHOLD

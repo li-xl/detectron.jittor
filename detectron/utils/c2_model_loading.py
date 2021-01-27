@@ -29,7 +29,6 @@ def _rename_basic_resnet_weights(layer_keys):
     # Affine-Channel -> BatchNorm enaming
     layer_keys = [k.replace("_bn.scale", "_bn.weight") for k in layer_keys]
 
-    # Make torchvision-compatible
     layer_keys = [k.replace("conv1_bn.", "bn1.") for k in layer_keys]
 
     layer_keys = [k.replace("res2.", "layer1.") for k in layer_keys]

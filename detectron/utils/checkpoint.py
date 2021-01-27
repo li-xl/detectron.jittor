@@ -3,7 +3,6 @@ import logging
 import os
 
 import jittor as jt 
-import torch
 
 from detectron.utils.model_serialization import load_state_dict
 from detectron.utils.c2_model_loading import load_c2_format
@@ -49,7 +48,7 @@ class Checkpointer(object):
 
         save_file = os.path.join(self.save_dir, "{}.pth".format(name))
         self.logger.info("Saving checkpoint to {}".format(save_file))
-        torch.save(data, save_file)
+        jt.save(data, save_file)
         self.tag_last_checkpoint(save_file)
 
     def load(self, f=None, use_latest=True):
@@ -95,7 +94,7 @@ class Checkpointer(object):
             f.write(last_filename)
 
     def _load_file(self, f):
-        return torch.load(f)
+        return jt.load(f)
 
     def _load_model(self, checkpoint):
         load_state_dict(self.model, checkpoint.pop("model"))
@@ -135,10 +134,7 @@ class DetectronCheckpointer(Checkpointer):
             cached_f = cache_url(f)
             self.logger.info("url {} cached in {}".format(f, cached_f))
             f = cached_f
-        # convert Caffe2 checkpoint from pkl
-        if f.endswith(".pkl"):
-            return load_c2_format(self.cfg, f)
-        # load native detectron.pytorch checkpoint
+        
         if self.is_train and True in self.cfg.MODEL.VOVNET.STAGE_WITH_DCN:
             return load_deformable_vovnet(self.cfg, f)
         else:

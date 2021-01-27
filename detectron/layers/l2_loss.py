@@ -2,7 +2,7 @@ import jittor as jt
 
 def l2_loss(input, target):
     """
-    very similar to the smooth_l1_loss from pytorch, but with
+    very similar to the smooth_l1_loss , but with
     the extra beta parameter
     """
     pos_inds = jt.nonzero(target > 0.0).squeeze(1)

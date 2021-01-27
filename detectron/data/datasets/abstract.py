@@ -18,7 +18,7 @@ class AbstractDataset(Dataset):
             img is the input image, which has to be load as a PIL Image object
             implementing the target requires the most effort, since it must have
             multiple fields: the size, bounding boxes, labels (contiguous), and
-            masks (either COCO-style Polygons, RLE or torch BinaryMask).
+            masks (either COCO-style Polygons, RLE or BinaryMask).
             Usually the target is a BoxList instance with extra fields.
             Lastly, idx is simply the input argument of the function.
 

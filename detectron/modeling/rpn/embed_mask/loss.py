@@ -25,11 +25,6 @@ def get_num_gpus():
 
 
 def reduce_sum(tensor):
-    if get_num_gpus() <= 1:
-        return tensor
-    import torch.distributed as dist
-    tensor = tensor.clone()
-    dist.all_reduce(tensor, op=dist.reduce_op.SUM)
     return tensor
 
 class EmbedMaskLossComputation(object):

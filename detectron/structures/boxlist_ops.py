@@ -78,7 +78,6 @@ def remove_small_boxes(boxlist, min_size):
     return boxlist[keep]
 
 
-# implementation from https://github.com/kuangliu/torchcv/blob/master/torchcv/utils/box.py
 # with slight modifications
 def boxlist_iou(boxlist1, boxlist2):
     """Compute the intersection over union of two set of boxes.
@@ -121,9 +120,6 @@ def boxlist_iou(boxlist1, boxlist2):
 
 # TODO redundant, remove
 def _cat(tensors, dim=0):
-    """
-    Efficient version of torch.cat that avoids a copy if there is only a single element in a list
-    """
     assert isinstance(tensors, (list, tuple))
     if len(tensors) == 1:
         return tensors[0]
@@ -158,7 +154,6 @@ def cat_boxlist(bboxes):
     return cat_boxes
 
 
-# implementation from https://github.com/kuangliu/torchcv/blob/master/torchcv/utils/box.py
 # with slight modifications
 def boxlist_partly_overlap(boxlist1, boxlist2):
     """Compute the intersection over union of two set of boxes.

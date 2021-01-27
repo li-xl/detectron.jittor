@@ -52,8 +52,6 @@ def im_detect_bbox_aug(model, images):
     # Merge boxlists detected by different bbox aug params
     boxlists = []
     for i, boxlist_ts in enumerate(boxlists_ts):
-        #bbox = torch.cat([boxlist_t.bbox for boxlist_t in boxlist_ts])
-        #scores = torch.cat([boxlist_t.get_field('scores') for boxlist_t in boxlist_ts])
         bbox = jt.contrib.concat([boxlist_t.bbox for boxlist_t in boxlist_ts])
         scores = jt.contrib.concat([boxlist_t.get_field('scores') for boxlist_t in boxlist_ts])
         boxlist = BoxList(bbox, boxlist_ts[0].size, boxlist_ts[0].mode)

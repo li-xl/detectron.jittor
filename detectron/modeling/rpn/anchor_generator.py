@@ -41,9 +41,9 @@ class BufferList(Module):
             persistent (bool): whether the buffer is part of this module's
                 :attr:`state_dict`.
         Example::
-            >>> self.register_buffer('running_mean', torch.zeros(num_features))
+            >>> self.register_buffer('running_mean', jt.zeros(num_features))
         """
-        if persistent is False and isinstance(self, torch.jit.ScriptModule):
+        if persistent is False:
             raise RuntimeError("ScriptModule does not support non-persistent buffers")
         else:
             self._buffers[name] = tensor

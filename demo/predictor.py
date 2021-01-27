@@ -22,7 +22,6 @@ class Resize(object):
         self.min_size = min_size
         self.max_size = max_size
 
-    # modified from torchvision to add support for max size
     def get_size(self, image_size):
         w, h = image_size
         size = self.min_size
@@ -328,9 +327,7 @@ class COCODemo(object):
         """
         # colors = labels[:, None] * self.palette
         # colors = (colors % 255).numpy().astype("uint8")
-        # colors = torch.cat([(class * 5) % len(COLORS) for class in labels])
         color_indice = [(labels[c] * 5) if class_color else c * 5 % len(COLORS) for c in range(len(labels))]
-        # colors = torch.cat([COLORS[color_idx] for color_idx in color_indice])
         colors = [COLORS[color_idx] for color_idx in color_indice]
         return colors
 

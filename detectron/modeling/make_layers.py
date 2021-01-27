@@ -75,10 +75,7 @@ def make_conv3x3(
     return conv
 
 def make_fc(dim_in, hidden_dim, use_gn=False):
-    '''
-        Caffe2 implementation uses XavierFill, which in fact
-        corresponds to kaiming_uniform_ in PyTorch
-    '''
+
     if use_gn:
         fc = nn.Linear(dim_in, hidden_dim, bias=False)
         init.kaiming_uniform_(fc.weight, a=1)
@@ -102,8 +99,7 @@ def conv_with_kaiming_uniform(use_gn=False, use_relu=False):
             dilation=dilation,
             bias=False if use_gn else True
         )
-        # Caffe2 implementation uses XavierFill, which in fact
-        # corresponds to kaiming_uniform_ in PyTorch
+
         init.kaiming_uniform_(conv.weight, a=1)
         if not use_gn:
             nn.init.constant_(conv.bias, 0)

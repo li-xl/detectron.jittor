@@ -19,7 +19,7 @@ from detectron.utils.miscellaneous import mkdir
 
 def main():
     jt.flags.use_cuda=1
-    parser = argparse.ArgumentParser(description="PyTorch Object Detection Inference")
+    parser = argparse.ArgumentParser(description="Object Detection Inference")
     parser.add_argument(
         "--config-file",
         default="/home/lxl/jittor/maskrcnn-benchmark/configs/caffe2/e2e_mask_rcnn_R_50_C4_1x_caffe2.yaml",
