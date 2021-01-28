@@ -1,6 +1,6 @@
 MODEL:
   META_ARCHITECTURE: "GeneralizedRCNN"
-  WEIGHT: "https://download.pytorch.org/models/maskrcnn/e2e_mask_rcnn_R_50_C4_1x.pth"
+  WEIGHT: "https://cloud.tsinghua.edu.cn/d/8707cf0259d041298f39/files/?p=%2Fmaskrcnn%2Fe2e_mask_rcnn_R_50_C4_1x.pkl&dl=1"
   RPN:
     PRE_NMS_TOP_N_TEST: 6000
     POST_NMS_TOP_N_TEST: 1000

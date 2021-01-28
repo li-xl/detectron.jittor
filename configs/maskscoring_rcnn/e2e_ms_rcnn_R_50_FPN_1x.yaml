@@ -1,6 +1,6 @@
 MODEL:
   META_ARCHITECTURE: "GeneralizedRCNN"
-  WEIGHT: "https://cloud.tsinghua.edu.cn/d/69b55d71e7ff46978a65/files/?p=%2Fmaskscoring_rcnn%2Fres50-model_0090000.pth&dl=1"
+  WEIGHT: "https://cloud.tsinghua.edu.cn/d/8707cf0259d041298f39/files/?p=%2Fmaskscoring_rcnn%2Fres50-maskscoring_0090000.pkl&dl=1"
   BACKBONE:
     CONV_BODY: "R-50-FPN"  
     OUT_CHANNELS: 256

@@ -1,6 +1,6 @@
 MODEL:
   META_ARCHITECTURE: "GeneralizedRCNN"
-  WEIGHT: "https://cloud.tsinghua.edu.cn/d/69b55d71e7ff46978a65/files/?dl=1&p=%2Ffcos%2FFCOS_R_50_FPN_1x.pth"
+  WEIGHT: "https://cloud.tsinghua.edu.cn/d/8707cf0259d041298f39/files/?p=%2Ffcos%2FFCOS_R_50_FPN_1x.pkl&dl=1"
   RPN_ONLY: True
   FCOS_ON: True
   BACKBONE:
