@@ -30,6 +30,7 @@ class AbstractDataset(Dataset):
     """
 
     def __init__(self, *args, **kwargs):
+        super(AbstractDataset,self).__init__()
         self.name_to_id = None
         self.id_to_name = None
 

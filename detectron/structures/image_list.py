@@ -74,8 +74,8 @@ def to_image_list(tensors, size_divisible=0):
             batched_imgs[i,: img.shape[0], : img.shape[1], : img.shape[2]]= img
 
         image_sizes = [im.shape[-2:] for im in tensors]
-        if isinstance(batched_imgs,np.ndarray):
-            return batched_imgs,image_sizes
+        # if isinstance(batched_imgs,np.ndarray):
+        #     return batched_imgs,image_sizes
         return ImageList(batched_imgs, image_sizes)
     else:
         raise TypeError("Unsupported type for to_image_list: {}".format(type(tensors)))

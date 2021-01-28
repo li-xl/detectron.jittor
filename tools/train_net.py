@@ -100,10 +100,12 @@ def run_test(cfg, model, distributed):
 
 
 def main():
+    jt.flags.use_cuda=1
+    parent_path = os.path.abspath(__file__).split("/tools/")[0]
     parser = argparse.ArgumentParser(description="Object Detection Training")
     parser.add_argument(
         "--config-file",
-        default="/home/lxl/jittor/detectron.jittor/configs/maskrcnn_benchmark/e2e_faster_rcnn_R_50_C4_1x.yaml",
+        default=f"{parent_path}/configs/maskrcnn_benchmark/e2e_faster_rcnn_R_50_C4_1x.yaml",
         metavar="FILE",
         help="path to config file",
         type=str,

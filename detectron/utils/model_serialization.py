@@ -70,7 +70,7 @@ def strip_prefix_if_present(state_dict, prefix):
 
 def load_state_dict(model, loaded_state_dict):
     model_state_dict = model.parameters()
-    model_state_dict = {m.name():m.data for m in model_state_dict}
+    model_state_dict = {m.name():m for m in model_state_dict}
     # if the state_dict comes from a model that was wrapped in a
     # DataParallel or DistributedDataParallel during serialization,
     # remove the "module" prefix before performing the matching

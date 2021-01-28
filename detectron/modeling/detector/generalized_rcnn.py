@@ -54,30 +54,14 @@ class GeneralizedRCNN(nn.Module):
         """
         if self.is_training() and targets is None:
             raise ValueError("In training mode, targets should be passed")
-        #print(3,time.asctime())
+        
         images = to_image_list(images)
         features = self.backbone(images.tensors)
-        # for f,i in zip(features,range(len(features))):
-        #     ff = f.numpy()
-        #     tt = pickle.load(open(f'/home/lxl/tmp/feature_{i}.pkl','rb'))
-        #     print(np.mean(np.abs(ff-tt)))
-            # assert np.allclose(ff,tt,atol=1e-3)
-        # print('backbone',features[0])
-        #jt.sync_all()
-        #print(4,time.asctime())
-        # print('Backbone',features[0].mean())
 
         proposals, proposal_losses = self.rpn(images, features, targets)
-        # print('RPN',proposals[0].bbox,proposals[0].bbox.shape,len(proposals))
 
-
-        #jt.sync_all()
-        #print(5,time.asctime())
         if self.roi_heads:
             x, result, detector_losses = self.roi_heads(features, proposals, targets)
-            #print('x',x)
-            #print('result',result[0].bbox)
-            #print('detector_losses',detector_losses)
         
         else:
             # RPN-only models don't have roi_heads

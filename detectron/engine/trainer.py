@@ -38,7 +38,6 @@ def do_train(
     if cfg.MODEL.KEYPOINT_ON:
         iou_types = iou_types + ("keypoints",)
     dataset_names = cfg.DATASETS.TEST
-
     for iteration, (images, targets, _) in enumerate(data_loader, start_iter):
         
         if any(len(target) < 1 for target in targets):
@@ -47,8 +46,8 @@ def do_train(
         data_time = time.time() - end
         iteration = iteration + 1
         arguments["iteration"] = iteration
-
-
+        for target in targets:
+            target.to_jittor()
         loss_dict = model(images, targets)
 
         losses = sum(loss for loss in loss_dict.values())

@@ -147,7 +147,7 @@ class BoxList(object):
             bbox = BoxList(scaled_box, size, mode=self.mode,to_jittor=self.jittor)
             # bbox._copy_extra_fields(self)
             for k, v in self.extra_fields.items():
-                if not isinstance(v, jt.Var) and hasattr(v,'resize'):
+                if not (isinstance(v, jt.Var) or isinstance(v,np.ndarray)) and hasattr(v,'resize'):
                     v = v.resize(size, *args, **kwargs)
                 bbox.add_field(k, v)
             return bbox
@@ -172,7 +172,7 @@ class BoxList(object):
         bbox = BoxList(scaled_box, size, mode="xyxy",to_jittor=self.jittor)
         # bbox._copy_extra_fields(self)
         for k, v in self.extra_fields.items():
-            if not isinstance(v, jt.Var) and hasattr(v,'resize'):
+            if not (isinstance(v, jt.Var) or isinstance(v,np.ndarray)) and hasattr(v,'resize'):
                 v = v.resize(size, *args, **kwargs)
             
             bbox.add_field(k, v)
@@ -193,7 +193,10 @@ class BoxList(object):
             )
 
         image_width, image_height = self.size
-        xmin, ymin, xmax, ymax = self._split_into_xyxy()
+        if self.jittor:
+            xmin, ymin, xmax, ymax = self._split_into_xyxy()
+        else:
+            xmin, ymin, xmax, ymax = self._split_into_xyxy_numpy()
         if method == FLIP_LEFT_RIGHT:
             TO_REMOVE = 1
             transposed_xmin = image_width - xmax - TO_REMOVE
@@ -206,13 +209,15 @@ class BoxList(object):
             transposed_ymin = image_height - ymax
             transposed_ymax = image_height - ymin
 
-        transposed_boxes = jt.contrib.concat(
-            (transposed_xmin, transposed_ymin, transposed_xmax, transposed_ymax), dim=-1
-        )
-        bbox = BoxList(transposed_boxes, self.size, mode="xyxy")
+        if self.jittor:
+            transposed_boxes = jt.contrib.concat((transposed_xmin, transposed_ymin, transposed_xmax, transposed_ymax), dim=-1)
+        else:
+            transposed_boxes = np.concatenate((transposed_xmin, transposed_ymin, transposed_xmax, transposed_ymax), axis=-1)
+
+        bbox = BoxList(transposed_boxes, self.size, mode="xyxy",to_jittor=self.jittor)
         # bbox._copy_extra_fields(self)
         for k, v in self.extra_fields.items():
-            if not isinstance(v, jt.Var):
+            if not (isinstance(v, jt.Var) or isinstance(v,np.ndarray)):
                 v = v.transpose(method)
             bbox.add_field(k, v)
         return bbox.convert(self.mode)
@@ -247,7 +252,7 @@ class BoxList(object):
 
 
     def __getitem__(self, item):
-        bbox = BoxList(self.bbox[item], self.size, self.mode)
+        bbox = BoxList(self.bbox[item], self.size, self.mode,to_jittor=self.jittor)
         for k, v in self.extra_fields.items():
             bbox.add_field(k, v[item])
         return bbox
@@ -256,21 +261,32 @@ class BoxList(object):
         return self.bbox.shape[0]
 
     def clip_to_image(self, remove_empty=True):
-        if not isinstance(self.bbox,jt.Var):
+        if self.jittor and not isinstance(self.bbox,jt.Var):
             self.to_jittor()
-        #print(self.bbox)
-        if self.bbox.numel()==0:
-            return self
-        TO_REMOVE = 1
-        self.bbox[:, 0] = jt.clamp(self.bbox[:, 0] ,min_v=0, max_v=self.size[0] - TO_REMOVE)
-        self.bbox[:, 1]= jt.clamp(self.bbox[:, 1],min_v=0, max_v=self.size[1] - TO_REMOVE)
-        self.bbox[:, 2]= jt.clamp(self.bbox[:, 2],min_v=0, max_v=self.size[0] - TO_REMOVE)
-        self.bbox[:, 3]= jt.clamp(self.bbox[:, 3],min_v=0, max_v=self.size[1] - TO_REMOVE)
-        if remove_empty:
-            box = self.bbox
-            keep = jt.logical_and((box[:, 3] > box[:, 1]),(box[:, 2] > box[:, 0]))
-            #print(keep)
-            return self[keep]
+        if self.jittor:
+            if self.bbox.numel()==0:
+                return self
+            TO_REMOVE = 1
+            self.bbox[:, 0] = jt.clamp(self.bbox[:, 0] ,min_v=0, max_v=self.size[0] - TO_REMOVE)
+            self.bbox[:, 1]= jt.clamp(self.bbox[:, 1],min_v=0, max_v=self.size[1] - TO_REMOVE)
+            self.bbox[:, 2]= jt.clamp(self.bbox[:, 2],min_v=0, max_v=self.size[0] - TO_REMOVE)
+            self.bbox[:, 3]= jt.clamp(self.bbox[:, 3],min_v=0, max_v=self.size[1] - TO_REMOVE)
+            if remove_empty:
+                box = self.bbox
+                keep = jt.logical_and((box[:, 3] > box[:, 1]),(box[:, 2] > box[:, 0]))
+                return self[keep]
+        else:
+            if self.bbox.size==0:
+                return self
+            TO_REMOVE = 1
+            self.bbox[:, 0] = np.clip(self.bbox[:, 0] ,0, self.size[0] - TO_REMOVE)
+            self.bbox[:, 1]= np.clip(self.bbox[:, 1],0, self.size[1] - TO_REMOVE)
+            self.bbox[:, 2]= np.clip(self.bbox[:, 2],0, self.size[0] - TO_REMOVE)
+            self.bbox[:, 3]= np.clip(self.bbox[:, 3],0, self.size[1] - TO_REMOVE)
+            if remove_empty:
+                box = self.bbox
+                keep = np.where((box[:, 3] > box[:, 1])&(box[:, 2] > box[:, 0]))[0]
+                return self[keep]
         return self
 
     def area(self):

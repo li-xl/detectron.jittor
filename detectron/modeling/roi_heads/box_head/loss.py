@@ -45,7 +45,7 @@ class FastRCNNLossComputation(object):
         # NB: need to clamp the indices because we can have a single
         # GT in the image, and matched_idxs can be -2, which goes
         # out of bounds
-        matched_targets = target[matched_idxs.clamp(min=0)]
+        matched_targets = target[matched_idxs.clamp(min_v=0)]
         matched_targets.add_field("matched_idxs", matched_idxs)
         return matched_targets
 
@@ -151,11 +151,11 @@ class FastRCNNLossComputation(object):
         if self.cls_agnostic_bbox_reg:
             map_inds = jt.array([4, 5, 6, 7])
         else:
-            map_inds = 4 * labels_pos[:, None] + jt.array(
+            map_inds = 4 * labels_pos.unsqueeze(1) + jt.array(
                 [0, 1, 2, 3])
 
         box_loss = smooth_l1_loss(
-            box_regression[sampled_pos_inds_subset[:, None], map_inds],
+            box_regression[sampled_pos_inds_subset.unsqueeze(1), map_inds],
             regression_targets[sampled_pos_inds_subset],
             size_average=False,
             beta=1,

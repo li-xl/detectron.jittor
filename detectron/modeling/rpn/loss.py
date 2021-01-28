@@ -48,7 +48,7 @@ class RPNLossComputation(object):
         # NB: need to clamp the indices because we can have a single
         # GT in the image, and matched_idxs can be -2, which goes
         # out of bounds
-        matched_targets = target[matched_idxs.clamp(min=0)]
+        matched_targets = target[matched_idxs.clamp(min_v=0)]
         matched_targets.add_field("matched_idxs", matched_idxs)
         return matched_targets
 
@@ -70,7 +70,7 @@ class RPNLossComputation(object):
 
             # discard anchors that go out of the boundaries of the image
             if "not_visibility" in self.discard_cases:
-                labels_per_image[~anchors_per_image.get_field("visibility")] = -1
+                labels_per_image[jt.logical_not(anchors_per_image.get_field("visibility"))] = -1
 
             # discard indices that are between thresholds
             if "between_thresholds" in self.discard_cases:
@@ -111,7 +111,7 @@ class RPNLossComputation(object):
         objectness, box_regression = \
                 concat_box_prediction_layers(objectness, box_regression)
 
-        objectness = objectness.squeeze()
+        objectness = objectness.squeeze(1)
 
         labels = jt.contrib.concat(labels, dim=0)
         regression_targets = jt.contrib.concat(regression_targets, dim=0)

@@ -100,7 +100,7 @@ def make_data_loader(cfg, is_train=True, start_iter=0, is_for_period=False):
     data_loaders = []
     for dataset in datasets:
         collator = BBoxAugCollator() if not is_train and cfg.TEST.BBOX_AUG.ENABLED else \
-            BatchCollator(cfg.DATALOADER.SIZE_DIVISIBILITY)
+            BatchCollator(cfg.DATALOADER.SIZE_DIVISIBILITY,is_train=is_train)
         num_workers =  cfg.DATALOADER.NUM_WORKERS
         data_loader = dataset
         data_loader.collate_batch=collator

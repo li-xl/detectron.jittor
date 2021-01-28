@@ -155,10 +155,6 @@ class RPNModule(Module):
                 testing, it is an empty dict.
         """
         objectness, rpn_box_regression = self.head(features)
-        # for o in objectness:
-        #     print('objectness',o.mean())
-        # for r in rpn_box_regression:
-        #     print('rpn_box_regression',r.mean())
 
         anchors = self.anchor_generator(images, features)
         if self.is_training():

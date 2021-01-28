@@ -19,4 +19,5 @@ tools/labels.json
 tools/log.txt
 demo/webcam.py
 demo/prediction.jpg
-run_test.sh
+log.txt
+labels.json

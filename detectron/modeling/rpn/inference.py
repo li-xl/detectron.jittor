@@ -53,7 +53,7 @@ class RPNPostProcessor(Module):
         self.fpn_post_nms_top_n = fpn_post_nms_top_n
         self.fpn_post_nms_per_batch = fpn_post_nms_per_batch
 
-    def add_gt_proposals(self, proposals, targets):
+    def add_gt_proposals(self, proposals:list, targets:list):
         """
         Arguments:
             proposals: list[BoxList]
@@ -66,7 +66,7 @@ class RPNPostProcessor(Module):
         # so we need to add a dummy for objectness that's missing
         for gt_box in gt_boxes:
             gt_box.add_field("objectness", jt.ones(len(gt_box)))
-
+        
         proposals = [
             cat_boxlist((proposal, gt_box))
             for proposal, gt_box in zip(proposals, gt_boxes)
@@ -97,50 +97,22 @@ class RPNPostProcessor(Module):
         num_anchors = A * H * W
 
         pre_nms_top_n = min(self.pre_nms_top_n, num_anchors)
-        # print(pre_nms_top_n)
-        #print('objectness',objectness)
-        # objectness = jt.array(pickle.load(open(f'/home/lxl/objectness_0_{II}.pkl','rb')))
-        
-        # print(objectness.shape)
         objectness, topk_idx = objectness.topk(pre_nms_top_n, dim=1, sorted=True)
 
         # print(II,'topk',topk_idx.sum(),topk_idx.shape)
         batch_idx = jt.arange(N).unsqueeze(1)
 
-        # pickle.dump(topk_idx.numpy(),open(f'/home/lxl/topk_idx_{II}_jt.pkl','wb'))
-        # topk_idx_tmp = topk_idx.numpy()
-        # batch_idx = jt.array(pickle.load(open(f'/home/lxl/batch_idx_{II}.pkl','rb')))
-        # topk_idx = jt.array(pickle.load(open(f'/home/lxl/topk_idx_{II}.pkl','rb')))
-        
-        # err = np.abs(topk_idx_tmp-topk_idx.numpy())
-        # print('Error!!!!!!!!!!!!!!!!',err.sum())
-        # print(err.nonzero())
-
-        
-        #print('box_regression0',box_regression)
-        #batch_idx = jt.index(topk_idx.shape,dim=0)
         box_regression = box_regression[batch_idx,topk_idx]
-        #print('box_regression1',box_regression)
 
         image_shapes = [box.size for box in anchors]
         concat_anchors = jt.contrib.concat([a.bbox for a in anchors], dim=0)
         concat_anchors = concat_anchors.reshape(N, -1, 4)[batch_idx, topk_idx]
         
-        
-        
-
-        # box_regression = jt.array(pickle.load(open(f'/home/lxl/box_regression_{II}.pkl','rb')))
-        # concat_anchors = jt.array(pickle.load(open(f'/home/lxl/concat_anchors_{II}.pkl','rb')))
-
         proposals = self.box_coder.decode(
             box_regression.reshape(-1, 4), concat_anchors.reshape(-1, 4)
         )
 
         proposals = proposals.reshape(N, -1, 4)
-
-        # proposals = jt.array(pickle.load(open(f'/home/lxl/proposal_{II}.pkl','rb')))
-        # objectness = jt.array(pickle.load(open(f'/home/lxl/objectness_{II}.pkl','rb')))
-        # II+=1
 
         result = []
         for i in range(len(image_shapes)):
