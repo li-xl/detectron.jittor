@@ -46,12 +46,8 @@ class MaskPostProcessor(Module):
 
         boxes_per_image = [len(box) for box in boxes]
         mask_prob = mask_prob.split(boxes_per_image, dim=0)
-        #for i in range(len(mask_prob)):
-        #    print('mask_prob',i,jt.mean(mask_prob[i]),jt.sum(mask_prob[i]),mask_prob[i].shape)
         if self.masker:
             mask_prob = self.masker(mask_prob, boxes)
-        #for i in range(len(mask_prob)):
-        #    print('mask_prob',i,jt.mean(mask_prob[i]),jt.sum(mask_prob[i]),mask_prob[i].shape)
 
         results = []
         for prob, box in zip(mask_prob, boxes):
@@ -116,15 +112,12 @@ def expand_masks(mask, padding):
     padded_mask = jt.zeros((N, 1, M + pad2, M + pad2),dtype = str(mask.dtype))
     
     padded_mask[:, :, padding:-padding, padding:-padding] = mask
-   # print('expand_masks',jt.sum(mask>0.5),jt.sum(padded_mask>0.5))
     return padded_mask, scale
 
 
 def paste_mask_in_image(mask, box, im_h, im_w, thresh=0.5, padding=1):
     # Need to work on the CPU, where fp16 isn't supported - cast to float to avoid this
     mask = mask.float()
-    #print('Masker 0',jt.sum(mask>thresh))
-
     box = box.float()
 
     padded_mask, scale = expand_masks(mask.unsqueeze(0), padding=padding)

@@ -146,17 +146,13 @@ class Pooler(Module):
             (num_rois, num_channels, output_size, output_size),
             dtype=dtype,
         )
-        #print('rois',rois)
         i=0
         for level, (per_level_feature, pooler) in enumerate(zip(x, self.poolers.layers.values())):
             idx_in_level = jt.nonzero(levels == level).squeeze(1)
            
             rois_per_level = rois[idx_in_level]
-            #print('idx_in_level',idx_in_level)
-            #print('rois_per_level',rois_per_level)
             
             result[idx_in_level] = pooler(per_level_feature, rois_per_level).cast(dtype)
-            #print(i,'---',pooler(per_level_feature, rois_per_level))
 
             i+=1
         return result

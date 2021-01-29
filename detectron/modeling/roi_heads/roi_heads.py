@@ -27,14 +27,9 @@ class CombinedROIHeads(Module):
     def execute(self, features, proposals, targets=None):
         losses = {}
         # TODO rename x to roi_box_features, if it doesn't increase memory consumption
-        #jt.sync_all()
-        #print(5.1,time.asctime())
-        #print('box start')
+
         x, detections, loss_box = getattr(self,'box')(features, proposals, targets)
-        #print('box end')
-        
-        #jt.sync_all()
-        #print(5.2,time.asctime())
+    
         losses.update(loss_box)
         if self.cfg.MODEL.MASK_ON:
             mask_features = features
@@ -57,8 +52,6 @@ class CombinedROIHeads(Module):
                 loss_maskiou, detections = getattr(self,'maskiou')(roi_feature, detections, selected_mask, labels, maskiou_targets)
                 losses.update(loss_maskiou)
 
-        #jt.sync_all()
-        #print(5.3,time.asctime())
         if self.cfg.MODEL.KEYPOINT_ON:
             keypoint_features = features
             # optimization: during training, if we share the feature extractor between
@@ -72,8 +65,6 @@ class CombinedROIHeads(Module):
             # this makes the API consistent during training and testing
             x, detections, loss_keypoint = getattr(self,'keypoint')(keypoint_features, detections, targets)            
             losses.update(loss_keypoint)
-        #jt.sync_all()
-        #print(5.4,time.asctime())
         return x, detections, losses
 
 

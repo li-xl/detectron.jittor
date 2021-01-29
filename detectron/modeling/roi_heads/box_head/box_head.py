@@ -36,50 +36,29 @@ class ROIBoxHead(Module):
             losses (dict[Tensor]): During training, returns the losses for the
                 head. During testing, returns an empty dict.
         """
-        #jt.sync_all()
-        #print(5.1,1,time.asctime())
-        #print('box_head start')
         if self.is_training():
             # Faster R-CNN subsamples during training the proposals with a fixed
             # positive / negative ratio
             with jt.no_grad():
                 proposals = self.loss_evaluator.subsample(proposals, targets)
-        #jt.sync_all()
-        #print(5.1,2,time.asctime())
         # extract features that will be fed to the final classifier. The
         # feature_extractor generally corresponds to the pooler + heads
 
-        #print('box_head feature_extractor start')
-
         x = self.feature_extractor(features, proposals)
-        # print(x)
-
-        #print('box_head feature_extractor end')
-        #jt.sync_all()
-        #print(5.1,3,time.asctime())
 
         # final classifier that converts the features into predictions
         class_logits, box_regression = self.predictor(x)
 
-        #print('box_head predictor end')
 
-        # print(class_logits,box_regression)
-
-        #jt.sync_all()
-        #print(5.1,4,time.asctime())
 
         if not self.is_training():
             result = self.post_processor((class_logits, box_regression), proposals)
-            #jt.sync_all()
-            #print(5.1,5,time.asctime())
             return x, result, {}
         
 
         loss_classifier, loss_box_reg = self.loss_evaluator(
             [class_logits], [box_regression]
         )
-        #print('box_head end')
-
         return (
             x,
             proposals,

@@ -484,12 +484,12 @@ def run_all_models():
     # import jittor as jt
     # jt.flags.merge_loop_mismatch_threshold = 1
 
-    start = 19
+    start = 1
 
 
     config_files = [
         '/home/lxl/jittor/detectron.jittor/configs/maskrcnn_benchmark/e2e_faster_rcnn_R_50_C4_1x.yaml',
-        '/home/lxl/jittor/detectron.jittor/configs/maskrcnn_benchmark/e2e_faster_rcnn_R_50_FPN_1x.yaml',
+        '/home/lxl/workspace/detectron.jittor/configs/maskrcnn_benchmark/e2e_faster_rcnn_R_50_FPN_1x.yaml',
         '/home/lxl/jittor/detectron.jittor/configs/maskrcnn_benchmark/e2e_faster_rcnn_R_101_FPN_1x.yaml',
         '/home/lxl/jittor/detectron.jittor/configs/maskrcnn_benchmark/e2e_faster_rcnn_X_101_32x8d_FPN_1x.yaml',
         '/home/lxl/jittor/detectron.jittor/configs/maskrcnn_benchmark/e2e_mask_rcnn_R_50_C4_1x.yaml',

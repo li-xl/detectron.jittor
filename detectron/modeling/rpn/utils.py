@@ -9,12 +9,8 @@ import jittor as jt
 
 def permute_and_flatten(layer, N, A, C, H, W):
     layer = layer.reshape(N, -1, C, H, W)
-    # print('permuter1',layer.mean(),layer.shape)
     layer = layer.transpose(0, 3, 4, 1, 2)
-    # print('permuter2',layer.mean(),layer.shape)
-
     layer = layer.reshape(N, -1, C)
-    # print('permuter3',layer.mean(),layer.shape)
 
     return layer
 

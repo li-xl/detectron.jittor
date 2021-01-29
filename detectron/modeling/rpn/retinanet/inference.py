@@ -65,7 +65,6 @@ class RetinaNetPostProcessor(RPNPostProcessor):
             box_cls: tensor of size N, A * C, H, W
             box_regression: tensor of size N, A * 4, H, W
         """
-        print(box_cls.shape)
         N, _, H, W = box_cls.shape
         A = box_regression.shape[1] // 4
         C = box_cls.shape[1] // A

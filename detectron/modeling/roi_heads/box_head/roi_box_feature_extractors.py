@@ -71,8 +71,6 @@ class FPN2MLPFeatureExtractor(Module):
         self.out_channels = representation_size
 
     def execute(self, x, proposals):
-        # print(__file__,proposals[0].bbox.shape,proposals[0].bbox)
-
         x = self.pooler(x, proposals)
         x = x.reshape(x.shape[0], -1)
         x = nn.relu(self.fc6(x))

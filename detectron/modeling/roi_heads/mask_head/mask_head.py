@@ -57,7 +57,6 @@ class ROIMaskHead(Module):
             losses (dict[Tensor]): During training, returns the losses for the
                 head. During testing, returns an empty dict.
         """
-        #print('Features',jt.mean(features[0]))
 
         if self.is_training():
             # during training, only focus on positive boxes
@@ -71,9 +70,7 @@ class ROIMaskHead(Module):
                 x, roi_feature = self.feature_extractor(features, proposals)
             else:
                 x = self.feature_extractor(features, proposals)
-        #print('Mask_head',jt.mean(x))
         mask_logits = self.predictor(x)
-        #print('Mask_heah mask',jt.mean(mask_logits),jt.sum(mask_logits),mask_logits.shape)
 
         if self.cfg.MODEL.MASKIOU_ON: 
             if not self.is_training():

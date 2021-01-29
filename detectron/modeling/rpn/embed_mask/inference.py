@@ -85,7 +85,6 @@ class EmbedMaskPostProcessor(nn.Module):
         box_regression = box_regression.reshape(N, -1, 4)
         centerness = centerness.view(N, 1, H, W).transpose(0, 2, 3, 1)
         centerness = centerness.reshape(N, -1).sigmoid()
-        #print(proposal_embed)
 
         proposal_embed = proposal_embed.view(N, -1, H, W).transpose(0, 2, 3, 1)
         proposal_embed = proposal_embed.reshape(N, H*W, -1)
@@ -230,26 +229,6 @@ class EmbedMaskPostProcessor(nn.Module):
             boxlists (list[BoxList]): the post-processed anchors, after
                 applying box decoding and NMS
         """
-        '''
-        for l in locations:
-            print('locations',l.mean(),l.shape)
-        for b in box_cls:
-            print('box_cls',b.mean(),b.shape)
-        
-        for b in box_regression:
-            print("box_regression",b.mean(),b.shape)
-        
-        for b in centerness:
-            print('centerness',b.mean(),b.shape)
-        for b in proposal_embed:
-            print('proposal_embed',b.mean(),b.shape)
-
-        for b in proposal_margin:
-            print('proposal_margin',b.mean(),b.shape)
-        
-        print('pixel_embed',pixel_embed.mean(),pixel_embed.shape)
-        print(image_sizes)
-        '''
 
         if benchmark and timers is not None:
             #jt.cuda.synchronize()
@@ -265,13 +244,6 @@ class EmbedMaskPostProcessor(nn.Module):
                     l, o, b, c, em, mar, image_sizes, i
                 )
             )
-
-        
-        # for box in sampled_boxes:
-        #     for b in box:
-        #         print('bbox',b.bbox.sum())
-        #         for k,d in b.extra_fields.items():
-        #             print(k,d.sum())
 
         
         if benchmark and timers is not None:

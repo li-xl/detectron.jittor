@@ -27,16 +27,9 @@ class MaskRCNNC4Predictor(Module):
                 init.kaiming_normal_(param, mode="fan_out", nonlinearity="relu")
 
     def execute(self, x):
-        #print('predictor 1',jt.mean(x),jt.sum(x),x[0])
         x = self.conv5_mask(x)
-        #print('predictor 2',jt.mean(x),jt.sum(x),x[0])
-
         x = nn.relu(x)
-        #print('predictor 3',jt.mean(x),jt.sum(x),x[0])
-
         x = self.mask_fcn_logits(x)
-        #print('predictor 4',jt.mean(x),jt.sum(x),x[0])
-
         return x
 
 

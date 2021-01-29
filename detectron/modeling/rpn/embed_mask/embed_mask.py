@@ -179,7 +179,6 @@ class EmbedMaskHead(nn.Module):
             scaled_coordinates = self.position_scale(coordinates) / 100.0
             proposal_spatial_embd = scaled_coordinates + proposal_spatial_embd
             proposal_embed.append(jt.contrib.concat([proposal_spatial_embd, proposal_other_embd], dim=1))
-            #print(proposal_embed[0])
             margin_x = box_tower / 32
             proposal_margin.append(jt.exp(self.proposal_margin_pred(margin_x)))
 
@@ -246,19 +245,6 @@ class EmbedMaskModule(nn.Module):
         if benchmark and timers is not None:
             timers[1].toc()
         box_cls, box_regression, centerness, proposal_embed, proposal_margin, pixel_embed = self.head(features, locations, benchmark, timers)
-
-        # for b in box_cls:
-        #     print('fcos box_cls',b.mean())
-        # for b in box_regression:
-        #     print('fcos box_regression',b.mean())
-        # for b in centerness:
-        #     print('fcos centerness',b.mean())
-        # for b in proposal_embed:
-        #     print('fcos proposal_embed',b.mean())
-        # for b in proposal_margin:
-        #     print('fcos proposal_margin',b.mean())
-        # print('fcos pixel_embed',pixel_embed.mean())
-
         if self.is_training():
             return self._forward_train(
                 locations, box_cls,

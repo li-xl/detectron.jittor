@@ -82,8 +82,6 @@ class PostProcessor(Module):
             boxlist = self.prepare_boxlist(boxes_per_img, prob, image_shape)
             boxlist = boxlist.clip_to_image(remove_empty=False)
 
-            # print("boxlist",boxlist.bbox.mean(),boxlist.bbox.shape)
-
             if not self.bbox_aug_enabled:  # If bbox aug is enabled, we will do it later
                 boxlist = self.filter_results(boxlist, num_classes)
                 # boxlist = self.filter_results_v2(boxlist, num_classes)
@@ -125,8 +123,6 @@ class PostProcessor(Module):
         # Skip j = 0, because it's the background class
         # inds_all = (scores > self.score_thresh).int()
         inds_all = scores > self.score_thresh
-        # print(self.score_thresh,num_classes)
-        # print(inds_all.shape)
         # inds_all = inds_all.transpose(1,0)
         inds_nonzeros = [ inds_all[:,j].nonzero() for j in range(1, num_classes) ]
         jt.sync(inds_nonzeros)
@@ -167,7 +163,6 @@ class PostProcessor(Module):
                     boxlist_for_class, self.nms
                 )
             num_labels = len(boxlist_for_class)
-            # print(j,num_labels)
 
             boxlist_for_class.add_field(
                     "labels", jt.full((num_labels,), j).int32()

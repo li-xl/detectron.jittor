@@ -11,7 +11,6 @@ from detectron.structures.boxlist_ops import remove_small_boxes
 from ..utils import cat
 import numpy as np
 from .utils import permute_and_flatten
-# II = 0
 
 class RPNPostProcessor(Module):
     """
@@ -81,25 +80,20 @@ class RPNPostProcessor(Module):
             objectness: tensor of size N, A, H, W
             box_regression: tensor of size N, A * 4, H, W
         """
-        # global II
-        # import pickle
         N, A, H, W = objectness.shape
 
         # put in the same format as anchors
         objectness = permute_and_flatten(objectness, N, A, 1, H, W).reshape(N, -1)
-        # print('objectness',objectness.mean())
 
         objectness = objectness.sigmoid()
 
         box_regression = permute_and_flatten(box_regression, N, A, 4, H, W)
-        # print('regression',box_regression.mean())
 
         num_anchors = A * H * W
 
         pre_nms_top_n = min(self.pre_nms_top_n, num_anchors)
         objectness, topk_idx = objectness.topk(pre_nms_top_n, dim=1, sorted=True)
 
-        # print(II,'topk',topk_idx.sum(),topk_idx.shape)
         batch_idx = jt.arange(N).unsqueeze(1)
 
         box_regression = box_regression[batch_idx,topk_idx]
@@ -141,7 +135,6 @@ class RPNPostProcessor(Module):
             boxlists (list[BoxList]): the post-processed anchors, after
                 applying box decoding and NMS
         """
-        print(anchors,objectness,box_regression)
         sampled_boxes = []
         num_levels = len(objectness)
         anchors = list(zip(*anchors))

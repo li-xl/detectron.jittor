@@ -62,12 +62,9 @@ class MaskRCNNFPNFeatureExtractor(Module):
         self.out_channels = layer_features
 
     def execute(self, x, proposals):
-        #print('feature_extrac 0',x[0])
         x = self.pooler(x, proposals)
-        #print('feature_extrac 1',x[0])
         roi_feature = x 
         for layer_name in self.blocks:
-            #print('feature_extrac',i,x[0])
             x = nn.relu(getattr(self,layer_name)(x))
         if self.maskiou:
             return x,roi_feature
@@ -125,24 +122,14 @@ class MaskRCNNFPNSpatialAttentionFeatureExtractor(Module):
         self.out_channels = layer_features
 
     def execute(self, x, proposals):
-        #for i in range(len(x)):
-        #    print(jt.mean(x[i]))
-        #print('------')
-        #for i in range(len(proposals)):
-        #    print(jt.mean(proposals[i].bbox))
-        #print('----')
         x = self.pooler(x, proposals)
-        #print(jt.mean(x))
         if self.maskiou:
             roi_feature = x
-        #print(jt.mean(x))
         for layer_name in self.blocks:
             x = nn.relu(getattr(self, layer_name)(x))
-        #print(jt.mean(x))
         #spatial attention
         if self.spatialAtt is not None:
             x = self.spatialAtt(x)
-        #print(jt.mean(x))
 
         if self.maskiou:
             return x, roi_feature

@@ -53,20 +53,9 @@ class FCOSModule(nn.Module):
             losses (dict[Tensor]): the losses for the model during training. During
                 testing, it is an empty dict.
         """
-        box_cls, box_regression, centerness = self.head(features)
-        
-        # for b in box_cls:
-        #     print('fcos box_cls',jt.mean(b))
-        # for b in box_regression:
-        #     print('fcos box_regression',jt.mean(b))
-        # for b in centerness:
-        #     print('fcos centerness',jt.mean(b))
+        box_cls, box_regression, centerness = self.head(features)    
         
         locations = self.compute_locations(features)
-        
-        
-        # for l in locations:
-        #     print("fcos locations",l.mean())
         
         if self.is_training():
             return self._forward_train(
@@ -101,10 +90,7 @@ class FCOSModule(nn.Module):
             locations, box_cls, box_regression,
             centerness, image_sizes
         )
-        '''
-        for b in boxes:
-            print('fcos test boxes',jt.mean(b.bbox))
-        '''
+ 
         return boxes, {}
 
     def compute_locations(self, features):

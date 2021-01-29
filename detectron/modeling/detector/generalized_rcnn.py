@@ -68,8 +68,6 @@ class GeneralizedRCNN(nn.Module):
             x = features
             result = proposals
             detector_losses = {}
-        #jt.sync_all()
-        #print(6,time.asctime())
 
         if self.is_training():
             losses = {}
