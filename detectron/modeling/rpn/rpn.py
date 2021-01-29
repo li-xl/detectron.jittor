@@ -156,7 +156,8 @@ class RPNModule(Module):
         """
        
         objectness, rpn_box_regression = self.head(features)
-        print(rpn_box_regression)
+
+        # print(objectness,rpn_box_regression)
 
         anchors = self.anchor_generator(images, features)
         if self.is_training():

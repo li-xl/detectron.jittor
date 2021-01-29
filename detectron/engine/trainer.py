@@ -49,9 +49,10 @@ def do_train(
         for target in targets:
             target.to_jittor()
         loss_dict = model(images, targets)
-        print(loss_dict)
         
         losses = sum(loss for loss in loss_dict.values())
+        # print(start_iter,max_iter)
+        # losses = -loss_dict["loss_rpn_box_reg"]-loss_dict["loss_objectness"]
 
         # reduce losses over all GPUs for logging purposes
         losses_reduced = sum(loss for loss in loss_dict.values())

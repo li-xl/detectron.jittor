@@ -60,7 +60,6 @@ auto argmax_data = argmax_p;
     int wstart = static_cast<int>(floor(pw* bin_size_w));
     int hend = static_cast<int>(ceil((ph + 1)* bin_size_h));
     int wend = static_cast<int>(ceil((pw + 1)* bin_size_w));
-    //printf("bin %d %d %d %d\n",hstart,hend,wstart,wend);
     // Add roi offsets and clip to input boundaries
     hstart = min(max(hstart + roi_start_h, 0), height);
     hend = min(max(hend + roi_start_h, 0), height);
@@ -84,7 +83,6 @@ auto argmax_data = argmax_p;
       }
     }
     top_data[index] = maxval;
-    //printf("%d %d\n",maxidx/width,maxidx%width);
     argmax_data[index] = maxidx;
   }
  

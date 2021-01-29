@@ -210,7 +210,7 @@ class PostProcessor(Module):
         # inds_all = (scores > self.score_thresh).int()
         scores = scores[:,1:]
         inds_all = scores > self.score_thresh
-        # print(inds_all.shape)
+
         # inds_all = inds_all.transpose(1,0)
 
         inds_all = inds_all.nonzero()

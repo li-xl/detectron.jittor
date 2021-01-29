@@ -37,7 +37,7 @@ def train(cfg, local_rank, distributed):
     checkpointer = DetectronCheckpointer(
         cfg, model, optimizer, scheduler, output_dir)
     extra_checkpoint_data = checkpointer.load(cfg.MODEL.WEIGHT)
-    arguments.update(extra_checkpoint_data)
+    # arguments.update(extra_checkpoint_data)
 
     data_loader = make_data_loader(
         cfg,
@@ -105,7 +105,7 @@ def main():
     parser = argparse.ArgumentParser(description="Object Detection Training")
     parser.add_argument(
         "--config-file",
-        default=f"{parent_path}/configs/maskrcnn_benchmark/e2e_faster_rcnn_R_50_C4_1x.yaml",
+        default=f"{parent_path}/configs/maskrcnn_benchmark/e2e_faster_rcnn_R_50_FPN_1x.yaml",
         metavar="FILE",
         help="path to config file",
         type=str,

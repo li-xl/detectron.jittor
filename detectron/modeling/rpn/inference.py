@@ -169,7 +169,7 @@ class RPNPostProcessor(Module):
             _, inds_sorted = jt.topk(objectness, post_nms_top_n, dim=0, sorted=True)
             inds_mask = jt.zeros(objectness.shape).bool()
             inds_mask[inds_sorted] = 1
-            inds_mask = inds_mask.split(box_sizes)
+            inds_mask = inds_mask.split(box_sizes,dim=0)
             for i in range(num_images):
                 boxlists[i] = boxlists[i][inds_mask[i]]
         else:

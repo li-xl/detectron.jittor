@@ -17,6 +17,14 @@ from detectron.structures.boxlist_ops import boxlist_iou
 from detectron.structures.boxlist_ops import cat_boxlist
 
 
+def _smooth_l1_loss(x, t, sigma):
+    sigma2 = sigma ** 2
+    diff = (x - t)
+    abs_diff = diff.abs()
+    flag = (abs_diff < (1. / sigma2)).float()
+    y = (flag * (sigma2 / 2.) * (diff ** 2) + (1 - flag) * (abs_diff - 0.5 / sigma2))
+    return y.sum()
+
 class RPNLossComputation(object):
     """
     This class computes the RPN loss.
@@ -115,11 +123,10 @@ class RPNLossComputation(object):
         labels = jt.contrib.concat(labels, dim=0)
         regression_targets = jt.contrib.concat(regression_targets, dim=0)
         
-        box_loss = smooth_l1_loss(
+        box_loss = _smooth_l1_loss(
             box_regression[sampled_pos_inds],
             regression_targets[sampled_pos_inds],
-            beta=1.0 / 9,
-            size_average=False,
+            sigma=3.
         ) / (sampled_inds.numel())
         
         # bce_loss_with_logits = nn.BCEWithLogitsLoss()

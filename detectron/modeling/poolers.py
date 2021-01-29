@@ -109,7 +109,6 @@ class Pooler(Module):
 
     def convert_to_roi_format(self, boxes):
         concat_boxes = cat([b.bbox for b in boxes], dim=0)
-        #print('concat_boxes',concat_boxes)
         dtype =str(concat_boxes.dtype)
         ids = cat(
             [
@@ -130,7 +129,6 @@ class Pooler(Module):
             result (Tensor)
         """
         num_levels = len(self.poolers)
-        #print('boxes',boxes[0].bbox)
         rois = self.convert_to_roi_format(boxes)
         if num_levels == 1:
             return self.poolers[0](x[0], rois)
