@@ -21,3 +21,5 @@ demo/webcam.py
 demo/prediction.jpg
 log.txt
 labels.json
+
+inference

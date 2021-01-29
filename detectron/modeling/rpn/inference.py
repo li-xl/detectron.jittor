@@ -141,6 +141,7 @@ class RPNPostProcessor(Module):
             boxlists (list[BoxList]): the post-processed anchors, after
                 applying box decoding and NMS
         """
+        print(anchors,objectness,box_regression)
         sampled_boxes = []
         num_levels = len(objectness)
         anchors = list(zip(*anchors))

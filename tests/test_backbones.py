@@ -12,11 +12,8 @@ from utils import load_config
 
 # overwrite configs if specified, otherwise default config is used
 BACKBONE_CFGS = {
-    "R-50-FPN": "e2e_faster_rcnn_R_50_FPN_1x.yaml",
-    "R-101-FPN": "e2e_faster_rcnn_R_101_FPN_1x.yaml",
-    "R-152-FPN": "e2e_faster_rcnn_R_101_FPN_1x.yaml",
-    "R-50-FPN-RETINANET": "retinanet/retinanet_R-50-FPN_1x.yaml",
-    "R-101-FPN-RETINANET": "retinanet/retinanet_R-101-FPN_1x.yaml",
+    "R-50-FPN": "maskrcnn_benchmark/e2e_faster_rcnn_R_50_FPN_1x.yaml",
+    "R-101-FPN": "maskrcnn_benchmark/e2e_faster_rcnn_R_101_FPN_1x.yaml",
 }
 
 
@@ -52,4 +49,5 @@ class TestBackbones(unittest.TestCase):
 
 
 if __name__ == "__main__":
+    jt.flags.use_cuda=1
     unittest.main()

@@ -19,10 +19,11 @@ from detectron.utils.miscellaneous import mkdir
 
 def main():
     jt.flags.use_cuda=1
+    parent_path = os.path.abspath(__file__).split("/tools/")[0]
     parser = argparse.ArgumentParser(description="Object Detection Inference")
     parser.add_argument(
         "--config-file",
-        default="/home/lxl/jittor/maskrcnn-benchmark/configs/caffe2/e2e_mask_rcnn_R_50_C4_1x_caffe2.yaml",
+        default=f"{parent_path}/configs/maskrcnn_benchmark/e2e_mask_rcnn_R_50_FPN_1x.yaml",
         metavar="FILE",
         help="path to config file",
     )

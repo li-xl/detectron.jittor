@@ -1,0 +1,1 @@
+CUDA_VISIBLE_DEVICES=1 PYTHONPATH=$PYTHONPATH:/home/lxl/workspace/detectron.jittor/ python3.8 tools/test_net.py
