@@ -39,6 +39,7 @@ class ROIBoxHead(Module):
         if self.is_training():
             # Faster R-CNN subsamples during training the proposals with a fixed
             # positive / negative ratio
+
             with jt.no_grad():
                 proposals = self.loss_evaluator.subsample(proposals, targets)
         # extract features that will be fed to the final classifier. The

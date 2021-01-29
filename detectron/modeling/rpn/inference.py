@@ -151,7 +151,6 @@ class RPNPostProcessor(Module):
         # append ground-truth bboxes to proposals
         if self.is_training() and targets is not None:
             boxlists = self.add_gt_proposals(boxlists, targets)
-
         return boxlists
 
     def select_over_all_levels(self, boxlists):

@@ -200,15 +200,13 @@ class COCODataset(CocoDetection):
 
         boxes = np.array([obj["bbox"] for obj in anno],dtype=np.float32)
         boxes = boxes.reshape(-1,4)
-        target =  BoxList(boxes, img.size, mode="xywh",to_jittor=False).convert("xyxy")
-
+        target =  BoxList(boxes, img.size, mode="xywh",to_jittor=False)
+        target = target.convert("xyxy")
         classes = [obj["category_id"] for obj in anno]
         classes = [self.json_category_id_to_contiguous_id[c] for c in classes]
         classes = np.array(classes,dtype=np.int32)
         target.add_field("labels", classes)
 
-        
-        
         if self.with_masks and anno and "segmentation" in anno[0]:
             masks = [obj["segmentation"] for obj in anno]
             masks = SegmentationMask(masks, img.size, mode='poly',to_jittor=False)
@@ -220,11 +218,9 @@ class COCODataset(CocoDetection):
             target.add_field("keypoints", keypoints)
         
         target = target.clip_to_image(remove_empty=True)
-
         if self._transforms is not None:
            img, target = self._transforms(img, target)
-        
-        img.dtype = np.float32
+        img = img.astype(np.float32)
         return img, target, idx
 
     def get_img_info(self, index):

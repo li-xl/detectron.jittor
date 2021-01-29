@@ -49,13 +49,14 @@ def do_train(
         for target in targets:
             target.to_jittor()
         loss_dict = model(images, targets)
-
+        print(loss_dict)
+        
         losses = sum(loss for loss in loss_dict.values())
 
         # reduce losses over all GPUs for logging purposes
-        loss_dict_reduced = loss_dict
-        losses_reduced = sum(loss for loss in loss_dict_reduced.values())
-        meters.update(loss=losses_reduced, **loss_dict_reduced)
+        losses_reduced = sum(loss for loss in loss_dict.values())
+        meters.update(loss=losses_reduced, **loss_dict)
+        
 
         # Note: If mixed precision is not used, this ends up doing nothing
         # Otherwise apply loss scaling for mixed-precision recipe

@@ -10,10 +10,10 @@ class FrozenBatchNorm2d(Module):
 
     def __init__(self, n):
         super(FrozenBatchNorm2d, self).__init__()
-        self.weight =  jt.ones(n)
-        self.bias = jt.zeros(n)
-        self.running_mean = jt.zeros(n)
-        self.running_var = jt.ones(n)
+        self.weight =  jt.ones(n).stop_grad()
+        self.bias = jt.zeros(n).stop_grad()
+        self.running_mean = jt.zeros(n).stop_grad()
+        self.running_var = jt.ones(n).stop_grad()
 
     def execute(self, x):
         # Cast all fixed parameters to half() if necessary
@@ -26,6 +26,6 @@ class FrozenBatchNorm2d(Module):
         if not hasattr(self, "_scale"):
             scale = self.weight / self.running_var.sqrt()
             bias = self.bias - self.running_mean * scale
-            self._scale = scale.reshape(1, -1, 1, 1)
-            self._bias = bias.reshape(1, -1, 1, 1)
+            self._scale = scale.reshape(1, -1, 1, 1).stop_grad()
+            self._bias = bias.reshape(1, -1, 1, 1).stop_grad()
         return x * self._scale + self._bias

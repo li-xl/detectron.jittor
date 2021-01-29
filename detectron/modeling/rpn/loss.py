@@ -108,14 +108,13 @@ class RPNLossComputation(object):
 
         sampled_inds = jt.contrib.concat([sampled_pos_inds, sampled_neg_inds], dim=0)
 
-        objectness, box_regression = \
-                concat_box_prediction_layers(objectness, box_regression)
+        objectness, box_regression = concat_box_prediction_layers(objectness, box_regression)
 
         objectness = objectness.squeeze(1)
 
         labels = jt.contrib.concat(labels, dim=0)
         regression_targets = jt.contrib.concat(regression_targets, dim=0)
-
+        
         box_loss = smooth_l1_loss(
             box_regression[sampled_pos_inds],
             regression_targets[sampled_pos_inds],
@@ -123,9 +122,12 @@ class RPNLossComputation(object):
             size_average=False,
         ) / (sampled_inds.numel())
         
-        bce_loss_with_logits = nn.BCEWithLogitsLoss()
-        objectness_loss = bce_loss_with_logits(
-            objectness[sampled_inds], labels[sampled_inds]
+        # bce_loss_with_logits = nn.BCEWithLogitsLoss()
+        # objectness_loss = bce_loss_with_logits(
+        #     objectness[sampled_inds], labels[sampled_inds]
+        # )
+        objectness_loss = nn.bce_loss(
+            objectness[sampled_inds].sigmoid(), labels[sampled_inds]
         )
 
         return objectness_loss, box_loss

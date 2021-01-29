@@ -117,9 +117,8 @@ def inference(
         )
     )
 
-    if output_folder:
-        jt.save(predictions, os.path.join(output_folder, "predictions.pkl"))
-    # save_predictions(predictions)
+    # if output_folder:
+    #     save_predictions(predictions)
 
     extra_args = dict(
         box_only=box_only,
@@ -128,8 +127,7 @@ def inference(
         expected_results_sigma_tol=expected_results_sigma_tol,
     )
 
-    # return None
-    # return evaluate(dataset=dataset,
-    #                 predictions=predictions,
-    #                 output_folder=output_folder,
-    #                 **extra_args)
+    return evaluate(dataset=dataset,
+                    predictions=predictions,
+                    output_folder=output_folder,
+                    **extra_args)

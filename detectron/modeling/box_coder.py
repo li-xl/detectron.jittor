@@ -32,6 +32,7 @@ class BoxCoder(object):
         TO_REMOVE = 1  # TODO remove
         ex_widths = proposals[:, 2] - proposals[:, 0] + TO_REMOVE
         ex_heights = proposals[:, 3] - proposals[:, 1] + TO_REMOVE
+
         ex_ctr_x = proposals[:, 0] + 0.5 * ex_widths
         ex_ctr_y = proposals[:, 1] + 0.5 * ex_heights
 

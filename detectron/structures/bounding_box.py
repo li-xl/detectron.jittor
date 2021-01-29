@@ -125,8 +125,8 @@ class BoxList(object):
             return (
                 xmin,
                 ymin,
-                xmin + np.clip(w - TO_REMOVE,a_min=0,a_max = 9999999),
-                ymin + np.clip(h - TO_REMOVE,a_min=0,a_max = 9999999),
+                xmin + np.clip(w - TO_REMOVE,a_min=0,a_max = 9999999.),
+                ymin + np.clip(h - TO_REMOVE,a_min=0,a_max = 9999999.),
             
             )
         else:

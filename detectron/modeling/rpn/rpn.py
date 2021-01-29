@@ -154,7 +154,9 @@ class RPNModule(Module):
             losses (dict[Tensor]): the losses for the model during training. During
                 testing, it is an empty dict.
         """
+       
         objectness, rpn_box_regression = self.head(features)
+        print(rpn_box_regression)
 
         anchors = self.anchor_generator(images, features)
         if self.is_training():

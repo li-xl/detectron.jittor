@@ -46,7 +46,7 @@ class BufferList(Module):
         if persistent is False:
             raise RuntimeError("ScriptModule does not support non-persistent buffers")
         else:
-            self._buffers[name] = tensor
+            self._buffers[name] = tensor.stop_grad()
             if persistent:
                 self._non_persistent_buffers_set.discard(name)
             else:

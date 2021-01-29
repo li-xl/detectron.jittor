@@ -16,13 +16,12 @@ class BatchCollator(object):
     def __call__(self, batch):
         transposed_batch = list(zip(*batch))
         images = to_image_list(transposed_batch[0], self.size_divisible)
-        
         targets = transposed_batch[1]
+
         img_ids = transposed_batch[2]
         if isinstance(images,tuple) and not self.is_train:
              return images[0],images[1],img_ids
-        if isinstance(images,tuple):
-            images = images[0]
+        
         return images, targets, img_ids
 
 
