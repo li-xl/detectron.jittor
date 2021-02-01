@@ -101,6 +101,7 @@ def run_test(cfg, model, distributed):
 
 def main():
     jt.flags.use_cuda=1
+    jt.cudnn.set_max_workspace_ratio(0)
     parent_path = os.path.abspath(__file__).split("/tools/")[0]
     parser = argparse.ArgumentParser(description="Object Detection Training")
     parser.add_argument(

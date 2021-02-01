@@ -1,1 +1,1 @@
-CUDA_VISIBLE_DEVICES=1 PYTHONPATH=$PYTHONPATH:/home/lxl/workspace/detectron.jittor/ python3 tools/test_net.py
+PYTHONPATH=/home/lxl/jt_repos/jittor/python:/home/lxl/workspace/detectron.jittor/ python3 tools/test_net.py

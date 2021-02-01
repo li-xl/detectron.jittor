@@ -39,7 +39,6 @@ def do_train(
         iou_types = iou_types + ("keypoints",)
     dataset_names = cfg.DATASETS.TEST
     for iteration, (images, targets, _) in enumerate(data_loader, start_iter):
-        
         if any(len(target) < 1 for target in targets):
             logger.error(f"Iteration={iteration + 1} || Image Ids used for training {_} || targets Length={[len(target) for target in targets]}" )
             continue
@@ -49,10 +48,7 @@ def do_train(
         for target in targets:
             target.to_jittor()
         loss_dict = model(images, targets)
-        
         losses = sum(loss for loss in loss_dict.values())
-        # print(start_iter,max_iter)
-        # losses = -loss_dict["loss_rpn_box_reg"]-loss_dict["loss_objectness"]
 
         # reduce losses over all GPUs for logging purposes
         losses_reduced = sum(loss for loss in loss_dict.values())

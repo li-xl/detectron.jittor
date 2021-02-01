@@ -86,13 +86,9 @@ class RPNHead(Module):
             num_anchors (int): number of anchors to be predicted
         """
         super(RPNHead, self).__init__()
-        self.conv = nn.Conv(
-            in_channels, in_channels, kernel_size=3, stride=1, padding=1
-        )
+        self.conv = nn.Conv(in_channels, in_channels, kernel_size=3, stride=1, padding=1)
         self.cls_logits = nn.Conv(in_channels, num_anchors, kernel_size=1, stride=1)
-        self.bbox_pred = nn.Conv(
-            in_channels, num_anchors * 4, kernel_size=1, stride=1
-        )
+        self.bbox_pred = nn.Conv(in_channels, num_anchors * 4, kernel_size=1, stride=1)
 
         for l in [self.conv, self.cls_logits, self.bbox_pred]:
             init.gauss_(l.weight, std=0.01)
@@ -154,11 +150,7 @@ class RPNModule(Module):
             losses (dict[Tensor]): the losses for the model during training. During
                 testing, it is an empty dict.
         """
-       
         objectness, rpn_box_regression = self.head(features)
-
-        # print(objectness,rpn_box_regression)
-
         anchors = self.anchor_generator(images, features)
         if self.is_training():
             return self._forward_train(anchors, objectness, rpn_box_regression, targets)
