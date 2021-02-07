@@ -53,7 +53,7 @@ __global__ void MaskProbForward(
 } 
 
 
-memset(out_p,0,out->size);
+cudaMemsetAsync(out_p,0,out->size);
 
 
 auto dim = in0_shape1;

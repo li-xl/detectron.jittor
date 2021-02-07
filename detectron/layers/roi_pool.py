@@ -87,8 +87,8 @@ auto argmax_data = argmax_p;
   }
  
 }
-memset(argmax_p,0,argmax->size);
-memset(output_p,0,output->size);
+cudaMemsetAsync(argmax_p,0,argmax->size);
+cudaMemsetAsync(output_p,0,output->size);
 const int total_count = in1_shape0 * out0_shape2 * out0_shape3 * in0_shape1;
 const int thread_per_block = 1024;
 const int block_count = (total_count + thread_per_block - 1) / thread_per_block;
@@ -146,7 +146,7 @@ __global__ void RoIPoolBackwardKernel(@ARGS_DEF){
     }
   }
 }
-memset(out0_p,0,out0->size);
+cudaMemsetAsync(out0_p,0,out0->size);
 const int total_count = in1_shape0*in0_shape1*pout0_shape2*pout0_shape3;
 const int thread_per_block = 1024;
 const int block_count = (total_count + thread_per_block - 1) / thread_per_block;
