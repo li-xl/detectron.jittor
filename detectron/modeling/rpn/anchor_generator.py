@@ -65,6 +65,8 @@ class BufferList(Module):
             modules = self.__dict__['_modules']
             if name in modules:
                 return modules[name]
+        if name == "buffers":
+            return "buffers"
         raise ValueError("'{}' object has no attribute '{}'".format(
             type(self).__name__, name))
 
