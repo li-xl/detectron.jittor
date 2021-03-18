@@ -74,8 +74,7 @@ class EmbedMaskLossComputation(object):
         object_sizes_of_interest = self.object_sizes_of_interest
         expanded_object_sizes_of_interest = []
         for l, points_per_level in enumerate(points):
-            object_sizes_of_interest_per_level = \
-                points_per_level.new_tensor(object_sizes_of_interest[l])
+            object_sizes_of_interest_per_level = jt.array(object_sizes_of_interest[l],dtype=points_per_level.dtype)
             expanded_object_sizes_of_interest.append(
                 object_sizes_of_interest_per_level[None].expand(len(points_per_level), -1)
             )
@@ -117,10 +116,10 @@ class EmbedMaskLossComputation(object):
         gt = gt[None].expand(K, num_gts, 4)
         center_x = (gt[..., 0] + gt[..., 2]) / 2
         center_y = (gt[..., 1] + gt[..., 3]) / 2
-        center_gt = gt.new_zeros(gt.shape)
+        center_gt = jt.zeros(gt.shape,dtype=gt.dtype)
         # no gt
         if center_x[..., 0].sum() == 0:
-            return gt_xs.new_zeros(gt_xs.shape, dtype='uint8')
+            return jt.zeros(gt_xs.shape, dtype='uint8')
         beg = 0
         for level, n_p in enumerate(num_points_per):
             end = beg + n_p
@@ -150,7 +149,7 @@ class EmbedMaskLossComputation(object):
         top = gt_ys[:, None] - center_gt[..., 1]
         bottom = center_gt[..., 3] - gt_ys[:, None]
         center_bbox = jt.stack((left, top, right, bottom), -1)
-        inside_gt_bbox_mask = center_bbox.min(-1)[0] > 0
+        inside_gt_bbox_mask = center_bbox.min(-1) > 0
         return inside_gt_bbox_mask
 
     def compute_targets_for_locations(self, locations, targets, object_sizes_of_interest, im_w, im_h):
@@ -182,9 +181,9 @@ class EmbedMaskLossComputation(object):
                     ys,
                     radius=self.center_sampling_radius)
             else:
-                is_in_boxes = reg_targets_per_im.min(dim=2)[0] > 0
+                is_in_boxes = reg_targets_per_im.min(dim=2) > 0
 
-            max_reg_targets_per_im = reg_targets_per_im.max(dim=2)[0]
+            max_reg_targets_per_im = reg_targets_per_im.max(dim=2)
             # limit the regression range for each location
             is_cared_in_the_level = \
                 (max_reg_targets_per_im >= object_sizes_of_interest[:, [0]]) & \
@@ -196,7 +195,7 @@ class EmbedMaskLossComputation(object):
             if self.sample_in_mask:
                 masks_ori = targets_per_im.get_field('masks').convert('mask').instances.masks.to(device=locations.device)  # n, h, w
                 masks_ori = masks_ori.transpose(1, 2, 0) # h, w, n
-                masks = masks_ori.new_zeros((im_h, im_w, masks_ori.shape[2]))
+                masks = jt.zeros((im_h, im_w, masks_ori.shape[2]),dtype=masks_ori.dtype)
                 masks[:masks_ori.shape[0], :masks_ori.shape[1], :] = masks_ori
                 mask_targets = masks[ys.long(), xs.long()]
                 locations_to_gt_area[mask_targets == 0] = INF
@@ -279,10 +278,10 @@ class EmbedMaskLossComputation(object):
         for im_i in range(len(targets_masks)):
             mask_t = targets_masks[im_i]
             if len(mask_t) == 0:
-                masks.append(mask_t.new_tensor([]))
+                masks.append(jt.array([],dtype=mask_t.dtype))
                 continue
             n, h, w = mask_t.shape
-            mask = mask_t.new_zeros((n, r_h, r_w))
+            mask = jt.zeros((n, r_h, r_w),dtype=mask_t.dtype)
             mask[:, :h, :w] = mask_t
             resized_mask = interpolate(
                 input=mask.float().unsqueeze(0), size=(o_h, o_w), mode="bilinear", align_corners=False,
@@ -351,7 +350,7 @@ class EmbedMaskLossComputation(object):
 
         num_gpus = get_num_gpus()
         # sync num_pos from all gpus
-        total_num_pos = reduce_sum(pos_inds.new_tensor([pos_inds.numel()])).item()
+        total_num_pos = reduce_sum(jt.array([pos_inds.numel()],dtype=pos_inds.dtype)).item()
         num_pos_avg_per_gpu = max(total_num_pos / float(num_gpus), 1.0)
 
         cls_loss = self.cls_loss_func(
@@ -378,7 +377,7 @@ class EmbedMaskLossComputation(object):
             ) / num_pos_avg_per_gpu
         else:
             reg_loss = box_regression_flatten.sum()
-            reduce_sum(centerness_flatten.new_tensor([0.0]))
+            reduce_sum(jt.array([0.0],dtype=centerness_flatten.dtype))
             centerness_loss = centerness_flatten.sum()
 
         #################################### Mask Related Losses ######################################
@@ -390,7 +389,7 @@ class EmbedMaskLossComputation(object):
         proposal_margin_for_targets, _ = self.get_proposal_element(proposal_margin, pos_proposal_labels_for_targets)
 
         ######## MEANINGLESS_LOSS #######
-        mask_loss = box_cls[0].new_tensor(0.0)
+        mask_loss = jt.array([0.0],dtype=box_cls[0].dtype)
         for i in range(len(proposal_embed)):
             mask_loss += 0 * proposal_embed[i].sum()
             mask_loss += 0 * proposal_margin[i].sum()
@@ -432,8 +431,8 @@ class EmbedMaskLossComputation(object):
     def compute_centerness_targets(self, reg_targets):
         left_right = reg_targets[:, [0, 2]]
         top_bottom = reg_targets[:, [1, 3]]
-        centerness = (left_right.min(dim=-1)[0] / left_right.max(dim=-1)[0]) * \
-                      (top_bottom.min(dim=-1)[0] / top_bottom.max(dim=-1)[0])
+        centerness = (left_right.min(dim=-1) / left_right.max(dim=-1)) * \
+                      (top_bottom.min(dim=-1) / top_bottom.max(dim=-1))
         return jt.sqrt(centerness)
 
 def make_embed_mask_loss_evaluator(cfg):

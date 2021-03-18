@@ -43,8 +43,10 @@ class BoxList(object):
         if not isinstance(self.bbox,jt.Var):
             self.bbox = jt.array(self.bbox)
         for k in self.extra_fields:
-            if not isinstance(self.extra_fields[k],jt.Var):
+            if isinstance(self.extra_fields[k],(list,np.ndarray)):
                 self.extra_fields[k] = jt.array(self.extra_fields[k])
+            else:
+                self.extra_fields[k].to_jittor()
 
     def add_field(self, field, field_data):
         self.extra_fields[field] = field_data

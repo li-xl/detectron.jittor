@@ -479,6 +479,8 @@ class PolygonList(object):
                     item = item.numpy().tolist()
                 else:
                     item = []
+            elif isinstance(item,jt.Var):
+                item = item.tolist()
             for i in item:
                 selected_polygons.append(self.polygons[i])
         return PolygonList(selected_polygons, size=self.size)
@@ -513,11 +515,10 @@ class SegmentationMask(object):
 
         assert isinstance(size, (list, tuple))
         assert len(size) == 2
-        '''
+
         if isinstance(size[0], jt.Var):
             assert isinstance(size[1], jt.Var)
             size = size[0].item(), size[1].item()
-        '''
 
         assert isinstance(size[0], (int, float))
         assert isinstance(size[1], (int, float))

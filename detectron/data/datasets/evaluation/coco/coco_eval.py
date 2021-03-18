@@ -285,10 +285,10 @@ def evaluate_box_proposals(
         for j in range(min(len(prediction), len(gt_boxes))):
             # find which proposal box maximally covers each gt box
             # and get the iou amount of coverage for each gt box
-            max_overlaps, argmax_overlaps = overlaps.max(dim=0)
+            argmax_overlaps,max_overlaps = overlaps.argmax(dim=0)
 
             # find which gt box is 'best' covered (i.e. 'best' = most iou)
-            gt_ovr, gt_ind = max_overlaps.max(dim=0)
+            gt_ind,gt_ovr  = max_overlaps.argmax(dim=0)
             assert gt_ovr >= 0
             # find the proposal box that covers the best covered gt box
             box_ind = argmax_overlaps[gt_ind]

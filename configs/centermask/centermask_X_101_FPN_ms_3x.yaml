@@ -33,8 +33,8 @@ MODEL:
     RESOLUTION: 28
     SHARE_BOX_FEATURE_EXTRACTOR: False
 DATASETS:
-  TRAIN: ("coco_2014_train", "coco_2014_valminusminival")
-  TEST: ("coco_2014_minival",)
+  TRAIN: ("coco_2017_train",)
+  TEST: ("coco_2017val",)
 INPUT:
   MIN_SIZE_RANGE_TRAIN: (640, 800)
   MAX_SIZE_TRAIN: 1333
@@ -43,10 +43,10 @@ INPUT:
 DATALOADER:
   SIZE_DIVISIBILITY: 32
 SOLVER:
+  IMS_PER_BATCH: 2
   BASE_LR: 0.01
   WEIGHT_DECAY: 0.0001
   STEPS: (210000, 250000)
   MAX_ITER: 270000
-  IMS_PER_BATCH: 16
   WARMUP_METHOD: "constant"
 OUTPUT_DIR : 'checkpoints/CenterMask-X-101-FPN-MS-3x'

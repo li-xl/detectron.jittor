@@ -107,7 +107,7 @@ def conv_with_kaiming_uniform(use_gn=False, use_relu=False):
         if use_gn:
             module.append(group_norm(out_channels))
         if use_relu:
-            module.append(nn.ReLU(inplace=True))
+            module.append(nn.Relu())
         if len(module) > 1:
             return nn.Sequential(*module)
         return conv

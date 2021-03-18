@@ -106,7 +106,7 @@ def main():
     parser = argparse.ArgumentParser(description="Object Detection Training")
     parser.add_argument(
         "--config-file",
-        default=f"{parent_path}/configs/maskrcnn_benchmark/e2e_faster_rcnn_R_50_FPN_1x.yaml",
+        default=f"{parent_path}/configs/centermask/centermask_X_101_FPN_ms_3x.yaml",
         metavar="FILE",
         help="path to config file",
         type=str,
