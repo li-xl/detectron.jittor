@@ -7,7 +7,7 @@ import jittor as jt
 # nms.__doc__ = """
 # This function performs Non-maximum suppresion"""
 
-from jittor.utils.nvtx import nvtx_scope
+# from jittor.utils.nvtx import nvtx_scope
 # @nvtx_scope("nms")
 def nms(dets,scores,threshold):
     dets = jt.contrib.concat([dets,scores.unsqueeze(-1)],dim=-1)
